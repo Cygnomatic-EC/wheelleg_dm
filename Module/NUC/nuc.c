@@ -6,7 +6,7 @@
 
 void NucRxCallback(uint8_t* data, uint16_t len);
 
-static nuc_ctrl_t nuc_instance;
+__attribute__((section(".dma_buffer"), aligned(32))) static nuc_ctrl_t nuc_instance;
 void NUC_Init(UART_HandleTypeDef *nuc_uart)
 {
     nuc_ctrl_t* nuc_ptr = &nuc_instance;
@@ -91,7 +91,7 @@ void NUC_Referee_Tran(const uint8_t* data, const uint16_t len)
     if (!nuc_instance.init || len < 5)
         return;
 
-    BSP_UART_Transmit_To_Mail(&nuc_instance.nuc_uart, data, len, 100);
+    BSP_UART_Transmit(&nuc_instance.nuc_uart, data, len, 100);
 }
 
 nuc_ctrl_t *Get_NUC_Ctrl_Instance(void)

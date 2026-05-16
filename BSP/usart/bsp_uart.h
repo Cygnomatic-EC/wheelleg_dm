@@ -31,16 +31,12 @@ struct UART_Handle_s {
     UART_HandleTypeDef *handle;                   /* HAL UART句柄 */
     uint8_t rxBuffer[2][RX_BUFFER_SIZE];          /* 双缓冲接收 */
     uint8_t txBuffer[TX_BUFFER_SIZE];             /* 发送缓冲区 */
-    uint16_t txhead, writehead;                   /* 发送与写入索引 */
     UART_RxCallback_t RxCallback;                 /* 接收完成回调函数 */
     UART_ErrorCallback_t ErrorCallback;           /* 错误回调函数（可选） */
     osThreadId_t txTaskHandle;                    /* DMA发送的FreeRTOS任务句柄 */
-    osMessageQueueId_t txMailHandle;              /* 发送请求的消息邮箱 */
     osSemaphoreId_t txSemaphore;                  /* 线程安全的缓冲区访问互斥量 */
     uint16_t rxBufferSize;                        /* 接收缓冲区大小 */
     uint16_t txBufferSize;                        /* 发送缓冲区大小 */
-    uint16_t StackSize;                           /* 发送任务栈大小 */
-    volatile uint8_t txBusy;                      /* 发送忙标志 */
 };
 
 /* Function prototypes */
@@ -51,7 +47,7 @@ UART_Status_t BSP_UART_Init(UART_Instance_t *uart_ins,
                            UART_ErrorCallback_t errorCallback,
                            uint16_t txBufferSize,
                            uint16_t rxBufferSize);
-UART_Status_t BSP_UART_Transmit_To_Mail(const UART_Instance_t *uart_ins, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+UART_Status_t BSP_UART_Transmit(UART_Instance_t *uart_ins, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
 void BSP_UART_IRQHandler(UART_Instance_t *uart_ins);
 UART_Instance_t* get_uart_ins_map(uint8_t uart);
 #endif /* BSP_UART_H */

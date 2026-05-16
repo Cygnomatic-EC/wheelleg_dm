@@ -61,8 +61,9 @@ extern FDCAN_HandleTypeDef hfdcan2;
 extern FDCAN_HandleTypeDef hfdcan3;
 extern DMA_HandleTypeDef hdma_spi2_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
+extern DMA_HandleTypeDef hdma_spi6_tx;
 extern SPI_HandleTypeDef hspi2;
-extern DMA_HandleTypeDef hdma_tim1_ch1;
+extern SPI_HandleTypeDef hspi6;
 extern DMA_HandleTypeDef hdma_uart5_rx;
 extern DMA_HandleTypeDef hdma_uart7_rx;
 extern DMA_HandleTypeDef hdma_uart7_tx;
@@ -303,20 +304,6 @@ void USART1_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA1 stream7 global interrupt.
-  */
-void DMA1_Stream7_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream7_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream7_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_tim1_ch1);
-  /* USER CODE BEGIN DMA1_Stream7_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream7_IRQn 1 */
-}
-
-/**
   * @brief This function handles UART5 global interrupt.
   */
 void UART5_IRQHandler(void)
@@ -372,6 +359,33 @@ void UART7_IRQHandler(void)
   /* USER CODE BEGIN UART7_IRQn 1 */
 
   /* USER CODE END UART7_IRQn 1 */
+}
+
+/**
+  * @brief This function handles SPI6 global interrupt.
+  */
+void SPI6_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI6_IRQn 0 */
+  /* USER CODE END SPI6_IRQn 0 */
+  HAL_SPI_IRQHandler(&hspi6);
+  /* USER CODE BEGIN SPI6_IRQn 1 */
+
+  /* USER CODE END SPI6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles BDMA channel0 global interrupt.
+  */
+void BDMA_Channel0_IRQHandler(void)
+{
+  /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
+
+  /* USER CODE END BDMA_Channel0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi6_tx);
+  /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
+
+  /* USER CODE END BDMA_Channel0_IRQn 1 */
 }
 
 /**

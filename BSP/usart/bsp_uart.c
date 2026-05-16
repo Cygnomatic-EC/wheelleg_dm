@@ -1,3 +1,6 @@
+// 原本为了实现串口多线程发送的线程安全，专门创建一个任务用于发送，并使用FreeRTOS的一些函数实现数据搬移，
+// 但发现实际上需要多线程发送的极少，但这种搬移却会造成比较严重的丢包，遂改为单线程
+
 #include "bsp_uart.h"
 #include "string.h"
 #include "usart.h"
@@ -12,53 +15,8 @@ extern DMA_HandleTypeDef hdma_usart7_tx;
 /* 存储uart句柄结构的指针map*/
 static UART_Instance_t *g_uart_instances[3] = {NULL, NULL, NULL};
 
-const osThreadAttr_t uart1txTask_attr = {
-    .name = "uart1txTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t) osPriorityNormal,
-  };
-const osThreadAttr_t uart5txTask_attr = {
-    .name = "uart5txTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t) osPriorityNormal,
-  };
-const osThreadAttr_t uart7txTask_attr = {
-    .name = "uart7txTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t) osPriorityNormal,
-  };
 /* 静态函数原型 */
 static UART_Status_t UART_DMA_Stop_Receive(const UART_Instance_t *uart_ins);
-
-/**
- * @brief  UART发送任务函数
- */
-static void UART_TxTask(void *argument)
-{
-    const UART_Instance_t *uart_ins = (UART_Instance_t *)argument;
-
-    while (1)
-    {
-        uint8_t *block = NULL;
-        const osStatus_t status = osMessageQueueGet(uart_ins->txMailHandle, &block, NULL, osWaitForever);
-        if (status == osOK && block != NULL) {
-            const uint16_t len = block[0] | (block[1] << 8);
-            const uint8_t *data = block + 2;
-
-            if (len > 0) {
-                if (osSemaphoreAcquire(uart_ins->txSemaphore, 1000) == osOK)
-                {
-                    if (HAL_UART_Transmit_IT(uart_ins->handle, data, len) != HAL_OK) {
-                        osSemaphoreRelease(uart_ins->txSemaphore);
-                        if (uart_ins->ErrorCallback != NULL) {
-                            uart_ins->ErrorCallback(HAL_UART_GetError(uart_ins->handle));
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 /**
  * @brief  停止DMA接收
@@ -132,8 +90,6 @@ UART_Status_t BSP_UART_Init(UART_Instance_t *uart_ins,
     uart_ins->ErrorCallback = errorCallback;
     uart_ins->rxBufferSize = rxBufferSize;
     uart_ins->txBufferSize = txBufferSize;
-    uart_ins->StackSize = txBufferSize * 4;
-    uart_ins->txBusy = 0;
 
     /* 加入map */
     if(huart->Instance == USART1) {
@@ -149,31 +105,15 @@ UART_Status_t BSP_UART_Init(UART_Instance_t *uart_ins,
 
     if (txBufferSize != 0)
     {
-        /* 创建用于线程安全缓冲区访问的互斥量 */
+        /* 创建用于线程安全缓冲区访问的同步对象 */
         uart_ins->txSemaphore = osSemaphoreNew(1, 1, NULL);
+
         if(uart_ins->txSemaphore == NULL) {
             return UART_ERROR;
         }
 
-        /* 创建用于发送请求的消息队列 */
-        uart_ins->txMailHandle = osMessageQueueNew(uart_ins->txBufferSize, sizeof(uint8_t *), NULL);
-        if(uart_ins->txMailHandle == NULL) {
-            return UART_ERROR;
-        }
-
-        /* 创建发送任务 */
-        if (huart->Instance == USART1) {
-            uart_ins->txTaskHandle = osThreadNew(UART_TxTask, uart_ins, &uart1txTask_attr);
-        } else if (huart->Instance == UART5) {
-            uart_ins->txTaskHandle = osThreadNew(UART_TxTask, uart_ins, &uart5txTask_attr);
-        } else if (huart->Instance == UART7) {
-            uart_ins->txTaskHandle = osThreadNew(UART_TxTask, uart_ins, &uart7txTask_attr);
-        }
-        if(uart_ins->txTaskHandle == NULL) {
-            return UART_ERROR;
-        }
     }
-
+    osSemaphoreRelease(uart_ins->txSemaphore);
 
     /* 启用UART DMA接收 */
     SET_BIT(uart_ins->handle->Instance->CR3, USART_CR3_DMAR);
@@ -194,61 +134,22 @@ UART_Status_t BSP_UART_Init(UART_Instance_t *uart_ins,
     return UART_OK;
 }
 
-/**
- * @brief  通过UART使用DMA和FreeRTOS任务发送数据
- * @param  uart_ins: 指向UART句柄结构的指针
- * @param  pData: 指向数据缓冲区的指针
- * @param  Size: 要发送的数据大小
- * @param  Timeout: 超时值（毫秒）
- * @retval 发送结果 (UART_Status_t)
- */
-UART_Status_t BSP_UART_Transmit_To_Mail(const UART_Instance_t *uart_ins, const uint8_t *pData, const uint16_t Size, const uint32_t Timeout)
+UART_Status_t BSP_UART_Transmit(UART_Instance_t *uart_ins, const uint8_t *pData, const uint16_t Size, const uint32_t Timeout)
 {
-    if(uart_ins == NULL || pData == NULL || Size == 0 || Size > TX_BUFFER_SIZE || uart_ins->txBufferSize == 0) {
+    if(uart_ins == NULL || pData == NULL || Size == 0 || Size > uart_ins->txBufferSize || uart_ins->txBufferSize == 0) {
         return UART_ERROR_INVALID_PARAM;
     }
-
-    /* 获取邮箱地址 */
-    uint8_t mail_ptr[Size+2];
-
-    /* 准备消息结构 */
-    mail_ptr[0] = Size & 0xFF;
-    mail_ptr[1] = (Size >> 8) & 0xFF;
-    memcpy(mail_ptr + 2, pData, Size);
-
-    /* 发送消息到传输队列 */
-    const osStatus_t status = osMessageQueuePut(uart_ins->txMailHandle, &mail_ptr, 0, Timeout);
-    if(status == osOK) {
-        return UART_OK;
+    if (osSemaphoreAcquire(uart_ins->txSemaphore, Timeout) != osOK) {
+        return UART_ERROR;
     }
-
-    return UART_ERROR;
-}
-
-/**
- * @brief  UART DMA发送完成回调
- * @param  uart_ins: 指向UART句柄结构的指针
- * @retval 无
- */
-void BSP_UART_TxCpltCallback(UART_Instance_t *uart_ins)
-{
-    if(uart_ins == NULL || uart_ins->txBufferSize == 0) {
-        return;
+    if (Size < uart_ins->txBufferSize) {
+        memcpy(uart_ins->txBuffer, pData, Size); // 需要将数据搬到DMA可访问的缓冲区
+    } else {
+        memcpy(uart_ins->txBuffer, pData, uart_ins->txBufferSize);
     }
-    /* 释放标志位 */
-    osSemaphoreRelease(uart_ins->txSemaphore);
-    /* 清除发送忙标志 */
-    uart_ins->txBusy = 0;
-}
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-    for(int i = 0; i < 3; i++) {
-        if(g_uart_instances[i] != NULL &&
-           g_uart_instances[i]->handle == huart) {
-            BSP_UART_TxCpltCallback(g_uart_instances[i]);
-            break;
-        }
-    }
+    HAL_UART_Transmit_DMA(uart_ins->handle, uart_ins->txBuffer, Size);
+
+    return UART_OK;
 }
 
 /**
@@ -262,11 +163,14 @@ void BSP_UART_IRQHandler(UART_Instance_t *uart_ins)
         return;
     }
     if (__HAL_UART_GET_FLAG(uart_ins->handle, UART_FLAG_ORE) != RESET) {
-        // 发生过载，按官方手册要求：先读 SR，再读 DR 来清除 ORE 标志
         __HAL_UART_CLEAR_OREFLAG(uart_ins->handle);
-        volatile uint32_t tmpreg = uart_ins->handle->Instance->RDR;
+        const volatile uint32_t tmpreg = uart_ins->handle->Instance->RDR;
         (void)tmpreg;
-        // 可选：在这里打个断点或置位一个错误标志，方便调试
+        osSemaphoreRelease(uart_ins->txSemaphore);
+    }
+    if (__HAL_UART_GET_FLAG(uart_ins->handle, UART_FLAG_TXE) != RESET)
+    {
+        osSemaphoreRelease(uart_ins->txSemaphore);
     }
     if(__HAL_UART_GET_FLAG(uart_ins->handle, UART_FLAG_RXNE)) {
         __HAL_UART_CLEAR_FLAG(uart_ins->handle, UART_FLAG_RXNE);
@@ -300,11 +204,6 @@ void BSP_UART_IRQHandler(UART_Instance_t *uart_ins)
 
             /* 如果已注册则调用接收回调 */
             if(uart_ins->RxCallback != NULL && receivedLength > 0) {
-                // if (uart_ins->handle->Instance == USART1) {
-                //     // 对于USART1，使用专用的静态缓冲区
-                //     uart_ins->RxCallback((uint8_t*)usart1_rx_buffer[1], receivedLength);
-                // } else
-                    // 对于其他UART，使用用户提供的缓冲区
                 uart_ins->RxCallback((uint8_t*)uart_ins->rxBuffer[1], receivedLength);
             }
             __HAL_DMA_ENABLE(uart_ins->handle->hdmarx);

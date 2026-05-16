@@ -250,6 +250,14 @@ SECTIONS
     . = ALIGN(32);
   } > RAM_D2
 
+  .bdma_buffer (NOLOAD) :
+    {
+      . = ALIGN(32);
+      *(.bdma_buffer)
+      *(.bdma_buffer*)
+      . = ALIGN(32);
+    } > RAM_D3
+
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {

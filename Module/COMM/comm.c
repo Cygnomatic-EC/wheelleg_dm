@@ -172,7 +172,7 @@ void CommCmd_PackPacket(const uint8_t *data_in, const uint16_t data_len, const u
 	Append_CRC8_Check_Sum(data_out, FRAME_HEADER_LEN);
 	Append_CRC16_Check_Sum(data_out, total_len);
 
-	BSP_UART_Transmit_To_Mail(&comm_ins->uart_instance, data_out, sizeof(data_out), 100);
+	BSP_UART_Transmit(&comm_ins->uart_instance, data_out, sizeof(data_out), 100);
 }
 
 void comm_send_attitude(const fp32 chassis_yaw)

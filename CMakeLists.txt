@@ -33,6 +33,7 @@ enable_language(C ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME}
+        Module/Power_Ctrl/switch_power.h
 )
 
 # Add STM32CubeMX generated sources

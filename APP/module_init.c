@@ -18,7 +18,7 @@ void Modules_Init(void) {
     INS_Init();
     dm8009p_init(&hfdcan1, 0x02, 0x12);
     m3508_init(&hfdcan2, M3508_TX_1, 1);
-    //WS2812_Init(1, &htim1, TIM_CHANNEL_1);
+    WS2812_SPI_Init(1);
     vofa_init(&huart1, 4, 0);
 
 #ifdef CHASSIS

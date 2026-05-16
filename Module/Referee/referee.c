@@ -129,7 +129,7 @@ void RefereeCmd_PackPacket(const uint8_t *data_in, const uint16_t data_len, cons
     Append_CRC8_Check_Sum(data_out, FRAME_HEADER_LEN);
     Append_CRC16_Check_Sum(data_out, total_len);
 
-    BSP_UART_Transmit_To_Mail(&referee_instance.uart_instance, data_out, sizeof(data_out), 100);
+    BSP_UART_Transmit(&referee_instance.uart_instance, data_out, sizeof(data_out), 100);
 }
 
 void Referee_SendSentryCmd(const uint8_t progress_revive, // 读条复活

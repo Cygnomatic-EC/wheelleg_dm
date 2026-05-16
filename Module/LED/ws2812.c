@@ -1,77 +1,77 @@
 #include "ws2812.h"
-#include "cmsis_os2.h"
-#include "tim.h"
-#include "dwt/bsp_dwt.h"
 
-static WS2812_instance ws2812_instance;
+__attribute__((section(".bdma_buffer"), aligned(32))) static WS2812_instance ws2812 = {0}; // BDMA只能访问D3
 
-/*开启DMA和PWM传输*/
-void Data_Transmit()
+static void RGB_to_SPI_Buffer(const uint16_t led_index, const uint8_t r, const uint8_t g, const uint8_t b)
 {
-    while(HAL_TIM_PWM_Start_DMA(&ws2812_instance.htim, ws2812_instance.channel, (uint32_t*)&ws2812_instance.buffer, ws2812_instance.num) != HAL_OK);
-}
+    const uint32_t grb = ((uint32_t)g << 16) | ((uint32_t)r << 8) | b;
+    uint8_t *buffer_ptr = &ws2812.buffer[led_index * WS2812_BITS_PER_LED];
 
-/*将颜色参数写入数组*/
-void Set_SINGLE_LED_RGB(const uint16_t n , const uint8_t red, const uint8_t green, const uint8_t blue)
-{
-    if(n < WS2812_MAX_NUM)
-    {
-        for(uint8_t i = 0; i < RGB; i++)
-        {
-            //输入顺序为G,R,B,且高位先写入
-            ws2812_instance.buffer.LEDS_Buffer[n][i] = WS2812_RGB_BIT(i,red,green,blue) ? WS2812_HIGH : WS2812_LOW;
+    for (int i = 23; i >= 0; i--) {
+        if (grb & (1 << i)) {
+            *buffer_ptr++ = 0xF8;  // 11111000
+        } else {
+            *buffer_ptr++ = 0xC0;  // 11000000
         }
     }
 }
 
-/*打开灯*/
-void WS2812_LEDS_Set(const uint32_t aRGB)
+void WS2812_SPI_Init(const uint16_t num)
 {
-    if (!ws2812_instance.init)
-        return;
-    for(uint8_t i=0;i<WS2812_MAX_NUM;i++)
-        Set_SINGLE_LED_RGB(i,(aRGB & 0x00FF0000) >> 16, (aRGB & 0x0000FF00) >> 8, (aRGB & 0x000000FF) >> 0);
-    for(uint8_t i=0;i<RESET_TIME;i++)
-        ws2812_instance.buffer.RESET_Buffer[i] = 0;
-    Data_Transmit();
+    ws2812.hspi = &hspi6;
+    ws2812.init = 1;
+    ws2812.num = (num > WS2812_MAX_NUM) ? WS2812_MAX_NUM : num;
+    ws2812.dma_busy = 0;
+
+    memset(ws2812.buffer, 0, sizeof(ws2812.buffer));
+    WS2812_SPI_Clear();
 }
 
-/*关闭灯*/
-void WS2812_LEDS_Reset(void)
+void WS2812_SPI_SetColor(const uint32_t aRGB)
 {
-    if (!ws2812_instance.init)
-        return;
-    for(uint8_t i=0;i<WS2812_MAX_NUM;i++)
-        Set_SINGLE_LED_RGB(i,0,0,0);
-    for(uint8_t i=0;i<RESET_TIME;i++)
-        ws2812_instance.buffer.RESET_Buffer[i] = 0;
-    Data_Transmit();
+    const uint8_t r = (aRGB >> 16) & 0xFF;
+    const uint8_t g = (aRGB >> 8) & 0xFF;
+    const uint8_t b = aRGB & 0xFF;
+    for (uint16_t i = 0; i < ws2812.num; i++) {
+        RGB_to_SPI_Buffer(i, r, g, b);
+    }
+    WS2812_SPI_Send();
 }
 
-void WS2812_LEDS_Shine(const uint32_t aRGB, const uint16_t Hz)
+void WS2812_SPI_Send(void)
 {
-    for (int i = 0; i < Hz; i++)
-    {
-        WS2812_LEDS_Set(aRGB);
-        osDelay(1000 / Hz / 2);
-        WS2812_LEDS_Reset();
-        osDelay(1000 / Hz / 2);
+    if (!ws2812.init || ws2812.dma_busy) return;
+
+    ws2812.dma_busy = 1;
+
+    const uint16_t total_bytes = WS2812_MAX_NUM * WS2812_BITS_PER_LED;
+    memset(&ws2812.buffer[total_bytes], 0, WS2812_RESET_PULSES);
+    HAL_SPI_Transmit_DMA(ws2812.hspi, ws2812.buffer, total_bytes + WS2812_RESET_PULSES);
+}
+
+/* 清空所有LED */
+void WS2812_SPI_Clear(void)
+{
+    for (int i = 0; i < WS2812_MAX_NUM; i++) {
+        WS2812_SPI_SetColor(0x00000000);
+    }
+    WS2812_SPI_Send();
+}
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    if (hspi->Instance == ws2812.hspi->Instance) {
+        ws2812.dma_busy = 0;
     }
 }
 
-void WS2812_Init(uint8_t num, const TIM_HandleTypeDef *htim, const uint32_t channel)
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
-    if(num > WS2812_MAX_NUM)
-        num = WS2812_MAX_NUM;
-    ws2812_instance.num = num;
-    ws2812_instance.htim = *htim;
-    ws2812_instance.channel = channel;
-    ws2812_instance.init = 1;
-    WS2812_LEDS_Reset();
-    DWT_Delay_ms(1000);
+    if (hspi->Instance == ws2812.hspi->Instance) {
+        ws2812.dma_busy = 0;
+    }
 }
 
-WS2812_instance* Get_WS2812_Ptr(void)
-{
-    return &ws2812_instance;
+WS2812_instance *Get_WS2812_Ptr(void) {
+    return &ws2812;
 }

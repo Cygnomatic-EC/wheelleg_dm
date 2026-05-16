@@ -20,6 +20,7 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
+#include "bdma.h"
 #include "dma.h"
 #include "fdcan.h"
 #include "spi.h"
@@ -103,6 +104,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+  MX_BDMA_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_UART5_Init();
@@ -111,7 +113,7 @@ int main(void)
   MX_FDCAN2_Init();
   MX_FDCAN3_Init();
   MX_SPI2_Init();
-  MX_TIM1_Init();
+  MX_SPI6_Init();
   /* USER CODE BEGIN 2 */
   Modules_Init();
   /* USER CODE END 2 */
