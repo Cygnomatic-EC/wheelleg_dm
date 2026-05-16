@@ -1,19 +1,26 @@
 #include "task_init.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "robot_config.h"
-#include "test.h"
-osThreadId_t chassis_taskHandle;
+#include "chassis_task.h"
+osThreadId_t chassisR_taskHandle;
+osThreadId_t chassisL_taskHandle;
 osThreadId_t daemon_taskHandle;
 
-const osThreadAttr_t chassisTask_attr = {
-    .name = "chassisTask",
-    .stack_size = 128 * 4,
+const osThreadAttr_t chassisRTask_attr = {
+    .name = "chassisRTask",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t) osPriorityNormal,
+  };
+const osThreadAttr_t chassisLTask_attr = {
+    .name = "chassisLTask",
+    .stack_size = 256 * 4,
     .priority = (osPriority_t) osPriorityNormal,
   };
 void task_init()
 {
 #ifdef CHASSIS
-    chassis_taskHandle = osThreadNew(TestTask, NULL, &chassisTask_attr);
+    chassisR_taskHandle = osThreadNew(chassisL_task, NULL, &chassisRTask_attr);
+    chassisL_taskHandle = osThreadNew(chassisR_task, NULL, &chassisLTask_attr);
 #else
 #endif
 

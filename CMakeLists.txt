@@ -33,7 +33,7 @@ enable_language(C ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME}
-        Module/Power_Ctrl/switch_power.h
+
 )
 
 # Add STM32CubeMX generated sources
@@ -56,6 +56,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         BSP/algorithm/rls.c
         BSP/algorithm/user_lib.c
         BSP/algorithm/pid_enhanced.c
+        BSP/algorithm/vmc.c
+        BSP/algorithm/lqr.c
         BSP/usart/bsp_uart.c
         BSP/can/bsp_can.c
         BSP/dwt/bsp_dwt.c
@@ -88,6 +90,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         APP/task_init.c
         APP/module_init.c
         APP/test.c
+        APP/chassis_task.c
 )
 
 # Add include paths

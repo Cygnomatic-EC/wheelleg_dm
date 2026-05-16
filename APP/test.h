@@ -13,7 +13,7 @@ typedef struct
 {
     rc_instance *rc;
     INS_t *ins;
-    dm8009p_instance_t *dm8009p;
+    dm8009p_instance *dm8009p;
     m3508_instance *m3508;
     WS2812_instance *ws2812;
     vofa_t *vofa;

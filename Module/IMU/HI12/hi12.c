@@ -2,7 +2,7 @@
 #include <string.h>
 #include "crc.h"
 
-static hi12_t hi12_instance;
+__attribute__((section(".dma_buffer"), aligned(32))) static hi12_t hi12_instance;
 
 void imuCallback(uint8_t* data, uint16_t len);
 

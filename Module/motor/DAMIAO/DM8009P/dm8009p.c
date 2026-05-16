@@ -2,7 +2,7 @@
 #include "user_lib.h"
 #include <string.h>
 
-static dm8009p_instance_t dm8009[DM8009P_CNT_MAX];
+static dm8009p_instance dm8009[DM8009P_CNT_MAX];
 
 static void dm8009p_can_rx_callback(const uint8_t *rx_data, uint32_t id, void *arg);
 DM8009P_Status_t dm8009p_init(FDCAN_HandleTypeDef *hcan, const uint8_t motor_id, const uint8_t master_id)
@@ -39,7 +39,7 @@ static void dm8009p_can_rx_callback(const uint8_t *rx_data, uint32_t id, void *a
     if (rx_data == NULL || arg == NULL)
         return;
 
-    dm8009p_instance_t *ins = (dm8009p_instance_t *)arg;
+    dm8009p_instance *ins = (dm8009p_instance *)arg;
     dm8009p_ecd_t *fb = &ins->ecd;
 
     fb->err = (rx_data[0] >> 4) & 0x0F;
@@ -53,7 +53,7 @@ static void dm8009p_can_rx_callback(const uint8_t *rx_data, uint32_t id, void *a
     fb->rotor_temp = (fp32)rx_data[7];
 }
 
-DM8009P_Status_t dm8009p_set_mode(dm8009p_instance_t *ins, const DM8009P_Mode_t mode)
+DM8009P_Status_t dm8009p_set_mode(dm8009p_instance *ins, const DM8009P_Mode_t mode)
 {
     if (ins == NULL)
         return DM8009P_ERROR_INVALID_PARAM;
@@ -61,7 +61,7 @@ DM8009P_Status_t dm8009p_set_mode(dm8009p_instance_t *ins, const DM8009P_Mode_t 
     return DM8009P_OK;
 }
 
-DM8009P_Status_t dm8009p_enable(const dm8009p_instance_t *ins)
+DM8009P_Status_t dm8009p_enable(const dm8009p_instance *ins)
 {
     if (ins == NULL || ins->can_ins == NULL)
         return DM8009P_ERROR_NOT_INIT;
@@ -75,7 +75,7 @@ DM8009P_Status_t dm8009p_enable(const dm8009p_instance_t *ins)
     return DM8009P_OK;
 }
 
-DM8009P_Status_t dm8009p_disable(const dm8009p_instance_t *ins)
+DM8009P_Status_t dm8009p_disable(const dm8009p_instance *ins)
 {
     if (ins == NULL || ins->can_ins == NULL)
         return DM8009P_ERROR_NOT_INIT;
@@ -89,7 +89,7 @@ DM8009P_Status_t dm8009p_disable(const dm8009p_instance_t *ins)
     return DM8009P_OK;
 }
 
-DM8009P_Status_t dm8009p_ctrl_mit(const dm8009p_instance_t *ins,
+DM8009P_Status_t dm8009p_ctrl_mit(const dm8009p_instance *ins,
                                   const float p_des, const float v_des,
                                   const float kp, const float kd, const float t_ff)
 {
@@ -123,7 +123,7 @@ DM8009P_Status_t dm8009p_ctrl_mit(const dm8009p_instance_t *ins,
 }
 
 /* 位置速度模式控制 */
-DM8009P_Status_t dm8009p_ctrl_pos_vel(const dm8009p_instance_t *ins, const float p_des, const float v_des)
+DM8009P_Status_t dm8009p_ctrl_pos_vel(const dm8009p_instance *ins, const float p_des, const float v_des)
 {
     if (ins == NULL || ins->can_ins == NULL)
         return DM8009P_ERROR_NOT_INIT;
@@ -140,7 +140,7 @@ DM8009P_Status_t dm8009p_ctrl_pos_vel(const dm8009p_instance_t *ins, const float
     return DM8009P_OK;
 }
 
-DM8009P_Status_t dm8009p_ctrl_vel(const dm8009p_instance_t *ins, const float v_des)
+DM8009P_Status_t dm8009p_ctrl_vel(const dm8009p_instance *ins, const float v_des)
 {
     if (ins == NULL || ins->can_ins == NULL)
         return DM8009P_ERROR_NOT_INIT;
@@ -157,7 +157,7 @@ DM8009P_Status_t dm8009p_ctrl_vel(const dm8009p_instance_t *ins, const float v_d
     return DM8009P_OK;
 }
 
-dm8009p_instance_t *Get_DM8009P_Ptr(const uint8_t motor_id)
+dm8009p_instance *Get_DM8009P_Ptr(const uint8_t motor_id)
 {
     if (motor_id == 0 || motor_id > 63)
         return NULL;

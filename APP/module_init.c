@@ -16,8 +16,12 @@ void Modules_Init(void) {
     dbus_init(RC_DIRECT, &hfdcan3);
     BMI088_Init();
     INS_Init();
-    dm8009p_init(&hfdcan1, 0x02, 0x12);
-    m3508_init(&hfdcan2, M3508_TX_1, 1);
+    dm8009p_init(&hfdcan1, 0x02, 0x12); // 左前
+    dm8009p_init(&hfdcan1, 0x04, 0x14); // 左后
+    dm8009p_init(&hfdcan2, 0x01, 0x11); // 右前
+    dm8009p_init(&hfdcan2, 0x03, 0x13); // 右后
+    m3508_init(&hfdcan1, M3508_TX_1, 1); // 左轮
+    m3508_init(&hfdcan2, M3508_TX_2, 1); // 右轮
     WS2812_SPI_Init(1);
     vofa_init(&huart1, 4, 0);
 

@@ -9,6 +9,7 @@
 #define M3508_MAXNUM 4
 
 #define M3508_CURRENT_MAX 16384
+#define M3508_TORCH_MAX 10.0f
 #define M3508_ECD_MAX 8191
 
 typedef enum

@@ -52,24 +52,24 @@ typedef struct {
     DM8009P_Mode_t     mode;     
     dm8009p_ecd_t      ecd;
     uint8_t            init;
-} dm8009p_instance_t;
+} dm8009p_instance;
 
 DM8009P_Status_t dm8009p_init(FDCAN_HandleTypeDef *hcan, uint8_t motor_id, uint8_t master_id);
 
-DM8009P_Status_t dm8009p_set_mode(dm8009p_instance_t *ins, DM8009P_Mode_t mode);
+DM8009P_Status_t dm8009p_set_mode(dm8009p_instance *ins, DM8009P_Mode_t mode);
 
-DM8009P_Status_t dm8009p_enable(const dm8009p_instance_t *ins);
+DM8009P_Status_t dm8009p_enable(const dm8009p_instance *ins);
 
-DM8009P_Status_t dm8009p_disable(const dm8009p_instance_t *ins);
+DM8009P_Status_t dm8009p_disable(const dm8009p_instance *ins);
 
-DM8009P_Status_t dm8009p_ctrl_mit(const dm8009p_instance_t *ins,
+DM8009P_Status_t dm8009p_ctrl_mit(const dm8009p_instance *ins,
                                   float p_des, float v_des,
                                   float kp, float kd, float t_ff);
 
-DM8009P_Status_t dm8009p_ctrl_pos_vel(const dm8009p_instance_t *ins,
+DM8009P_Status_t dm8009p_ctrl_pos_vel(const dm8009p_instance *ins,
                                       float p_des, float v_des);
 
-DM8009P_Status_t dm8009p_ctrl_vel(const dm8009p_instance_t *ins, float v_des);
-dm8009p_instance_t *Get_DM8009P_Ptr(uint8_t motor_id);
+DM8009P_Status_t dm8009p_ctrl_vel(const dm8009p_instance *ins, float v_des);
+dm8009p_instance *Get_DM8009P_Ptr(uint8_t motor_id);
 
 #endif /* DM8009P_H */
