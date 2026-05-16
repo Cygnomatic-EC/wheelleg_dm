@@ -1,0 +1,9 @@
+damiao\cmsis_os2.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c
+damiao\cmsis_os2.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+damiao\cmsis_os2.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\cmsis_os2.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\cmsis_os2.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\cmsis_os2.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\cmsis_os2.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\cmsis_os2.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\cmsis_os2.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

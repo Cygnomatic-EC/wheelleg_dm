@@ -1,0 +1,10 @@
+damiao\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c
+damiao\tasks.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+damiao\tasks.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+damiao\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\tasks.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\tasks.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\tasks.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

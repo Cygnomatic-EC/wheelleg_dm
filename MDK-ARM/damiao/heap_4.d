@@ -1,0 +1,10 @@
+damiao\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
+damiao\heap_4.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+damiao\heap_4.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+damiao\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\heap_4.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\heap_4.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\heap_4.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

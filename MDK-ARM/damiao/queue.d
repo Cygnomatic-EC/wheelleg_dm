@@ -1,0 +1,10 @@
+damiao\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/queue.c
+damiao\queue.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+damiao\queue.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+damiao\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\queue.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\queue.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\queue.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

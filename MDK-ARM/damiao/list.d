@@ -1,0 +1,9 @@
+damiao\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/list.c
+damiao\list.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+damiao\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\list.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\list.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\list.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

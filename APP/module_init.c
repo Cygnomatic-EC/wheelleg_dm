@@ -1,0 +1,26 @@
+#include "module_init.h"
+
+#include "fdcan.h"
+#include "usart.h"
+#include "dwt/bsp_dwt.h"
+#include "DBUS/dbus.h"
+#include "IMU/INS/ins.h"
+#include "motor/DAMIAO/DM8009P/dm8009p.h"
+#include "motor/DJI/M3508/m3508.h"
+#include "LED/ws2812.h"
+#include "VOFA/vofa.h"
+
+void Modules_Init(void) {
+    DWT_Init(DWT_CLOCK_FREQ);
+
+    dbus_init(RC_DIRECT, &hfdcan3);
+    BMI088_Init();
+    INS_Init();
+    dm8009p_init(&hfdcan1, 0x02, 0x12);
+    m3508_init(&hfdcan2, M3508_TX_1, 1);
+    //WS2812_Init(1, &htim1, TIM_CHANNEL_1);
+    vofa_init(&huart1, 4, 0);
+
+#ifdef CHASSIS
+#endif
+}

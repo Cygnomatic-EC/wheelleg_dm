@@ -1,0 +1,9 @@
+damiao\event_groups.o: ../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c
+damiao\event_groups.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+damiao\event_groups.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+damiao\event_groups.o: D:\keil5\ARM\ARMCC\Bin\..\include\stddef.h
+damiao\event_groups.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdint.h
+damiao\event_groups.o: ../Core/Inc/FreeRTOSConfig.h
+damiao\event_groups.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+damiao\event_groups.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+damiao\event_groups.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
