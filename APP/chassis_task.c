@@ -3,6 +3,7 @@
 #include "arm_math.h"
 #include "lqr.h"
 #include "user_lib.h"
+#include "observe_task.h"
 
 const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
@@ -32,10 +33,10 @@ void chassis_init()
     chassis.wheel_motor_left = Get_M3508_Ptr(M3508_TX_1);
     chassis.wheel_motor_right = Get_M3508_Ptr(M3508_TX_2);
 
-    chassis.turn_motor_left[0] = Get_DM8009P_Ptr(0x02);
-    chassis.turn_motor_left[1] = Get_DM8009P_Ptr(0x04);
-    chassis.turn_motor_right[0] = Get_DM8009P_Ptr(0x01);
-    chassis.turn_motor_right[1] = Get_DM8009P_Ptr(0x03);
+    chassis.joint_motor_left[0] = Get_DM8009P_Ptr(0x02);
+    chassis.joint_motor_left[1] = Get_DM8009P_Ptr(0x04);
+    chassis.joint_motor_right[0] = Get_DM8009P_Ptr(0x01);
+    chassis.joint_motor_right[1] = Get_DM8009P_Ptr(0x03);
 
     chassis.vmc_l = Get_VMC_Leg(LEFT);
     chassis.vmc_r = Get_VMC_Leg(RIGHT);
@@ -47,9 +48,9 @@ void chassis_init()
     {
         for (uint8_t motor = 0; motor < 2; motor++)
         {
-            dm8009p_enable(chassis.turn_motor_left[motor]);
+            dm8009p_enable(chassis.joint_motor_left[motor]);
             osDelay(1);
-            dm8009p_enable(chassis.turn_motor_right[motor]);
+            dm8009p_enable(chassis.joint_motor_right[motor]);
             osDelay(1);
         }
     }
@@ -118,8 +119,8 @@ void chassis_feedback_update(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
-        chassis.vmc_r->phi1 = chassis.turn_motor_right[0]->ecd.pos + PI/2.0f;
-        chassis.vmc_r->phi4 = chassis.turn_motor_right[1]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
 
         chassis.ctrl.pitchR = chassis.ins->ins.Pitch;
         chassis.ctrl.pitchgyroR = chassis.ins->ins.Gyro[1];
@@ -132,11 +133,14 @@ void chassis_feedback_update(const uint8_t leg)
         {
             chassis.ctrl.recover_flag = 0;
         }
+
+        chassis.ctrl.v_filter = Get_Observe_Velocity();
+        chassis.ctrl.x_filter += Get_Observe_Position_Delta();
     }
     else if (leg == LEFT)
     {
-        chassis.vmc_l->phi1 = chassis.turn_motor_left[0]->ecd.pos + PI/2.0f;
-        chassis.vmc_l->phi4 = chassis.turn_motor_left[1]->ecd.pos + PI/2.0f;
+        chassis.vmc_l->phi1 = chassis.joint_motor_left[0]->ecd.pos + PI/2.0f;
+        chassis.vmc_l->phi4 = chassis.joint_motor_left[1]->ecd.pos + PI/2.0f;
 
         chassis.ctrl.pitchL = 0.0f - chassis.ins->ins.Pitch;
         chassis.ctrl.pitchgyroL = 0.0f - chassis.ins->ins.Gyro[1];
@@ -433,16 +437,16 @@ void chassis_motor_control(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
-        dm8009p_ctrl_mit(chassis.turn_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
-        dm8009p_ctrl_mit(chassis.turn_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
+        dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
         int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.right_T[0] * M3508_ECD_MAX / M3508_CURRENT_MAX), 0, 0, 0};
         osDelay(CHASSIS_CTRL_LOOP);
         m3508_ctrl(chassis.wheel_motor_right, m3508_temp);
     }
     else if (leg == LEFT)
     {
-        dm8009p_ctrl_mit(chassis.turn_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
-        dm8009p_ctrl_mit(chassis.turn_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
+        dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
         int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.left_T[0] * M3508_ECD_MAX / M3508_CURRENT_MAX), 0, 0, 0};
         osDelay(CHASSIS_CTRL_LOOP);
         m3508_ctrl(chassis.wheel_motor_left, m3508_temp);

@@ -93,8 +93,8 @@ typedef struct
 
     m3508_instance *wheel_motor_left;
     m3508_instance *wheel_motor_right;
-    dm8009p_instance *turn_motor_left[2];
-    dm8009p_instance *turn_motor_right[2];
+    dm8009p_instance *joint_motor_left[2];
+    dm8009p_instance *joint_motor_right[2];
 
     uint8_t init;
 } chassis_t;
