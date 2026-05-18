@@ -5,6 +5,7 @@
 #include "user_lib.h"
 #include "observe_task.h"
 
+#ifdef INFANTRY
 const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f};
@@ -23,6 +24,45 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {577.6103f, -351.5575f, 75.9638f, 4.2419f},
     {46.4618f, -29.0229f, 6.5446f, 0.061617f}
 };
+#elif HERO
+const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+
+float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
+    {-1.1412f, 1.2471f, -3.633f, 0.056666f},
+    {-82.3054f, 49.8361f, -10.6676f, -0.73082f},
+    {-70.3514f, 43.3124f, -10.1995f, -0.64679f},
+    {-246.3632f, 173.9108f, -47.6573f, 6.1294f},
+    {-13.1949f, 10.2265f, -3.1718f, 0.52012f},
+    {114.4332f, -51.7589f, 2.8343f, 2.599f},
+    {14.4172f, -8.5621f, 1.6232f, 0.13359f},
+    {-154.0047f, 107.3901f, -28.8305f, 3.5029f},
+    {-128.9122f, 90.0203f, -24.2995f, 3.035f},
+    {577.6103f, -351.5575f, 75.9638f, 4.2419f},
+    {46.4618f, -29.0229f, 6.5446f, 0.061617f}
+};
+#elif SMALL_MODEL
+const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+
+float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
+    {-1.1412f, 1.2471f, -3.633f, 0.056666f},
+    {-82.3054f, 49.8361f, -10.6676f, -0.73082f},
+    {-70.3514f, 43.3124f, -10.1995f, -0.64679f},
+    {-246.3632f, 173.9108f, -47.6573f, 6.1294f},
+    {-13.1949f, 10.2265f, -3.1718f, 0.52012f},
+    {114.4332f, -51.7589f, 2.8343f, 2.599f},
+    {14.4172f, -8.5621f, 1.6232f, 0.13359f},
+    {-154.0047f, 107.3901f, -28.8305f, 3.5029f},
+    {-128.9122f, 90.0203f, -24.2995f, 3.035f},
+    {577.6103f, -351.5575f, 75.9638f, 4.2419f},
+    {46.4618f, -29.0229f, 6.5446f, 0.061617f}
+};
+#endif
 float LQR_K_R[12], LQR_K_L[12];
 
 static chassis_t chassis;
@@ -30,6 +70,12 @@ static chassis_t chassis;
 void chassis_pid_init();
 void chassis_init()
 {
+    chassis.vmc_l = Get_VMC_Leg(LEFT);
+    chassis.vmc_r = Get_VMC_Leg(RIGHT);
+
+    chassis.rc = Get_DBUS_Ptr();
+    chassis.ins = Get_INS_Ptr();
+#ifdef INFANTRY
     chassis.wheel_motor_left = Get_M3508_Ptr(M3508_TX_1);
     chassis.wheel_motor_right = Get_M3508_Ptr(M3508_TX_2);
 
@@ -37,12 +83,6 @@ void chassis_init()
     chassis.joint_motor_left[1] = Get_DM8009P_Ptr(0x04);
     chassis.joint_motor_right[0] = Get_DM8009P_Ptr(0x01);
     chassis.joint_motor_right[1] = Get_DM8009P_Ptr(0x03);
-
-    chassis.vmc_l = Get_VMC_Leg(LEFT);
-    chassis.vmc_r = Get_VMC_Leg(RIGHT);
-
-    chassis.rc = Get_DBUS_Ptr();
-    chassis.ins = Get_INS_Ptr();
 
     for (uint8_t i = 0; i < 10; i++)
     {
@@ -54,6 +94,38 @@ void chassis_init()
             osDelay(1);
         }
     }
+#elif HERO
+    // 轮毂电机有点问题
+    chassis.joint_motor_left[0] = Get_DM8009P_Ptr(0x02);
+    chassis.joint_motor_left[1] = Get_DM8009P_Ptr(0x04);
+    chassis.joint_motor_right[0] = Get_DM8009P_Ptr(0x01);
+    chassis.joint_motor_right[1] = Get_DM8009P_Ptr(0x03);
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        for (uint8_t motor = 0; motor < 2; motor++)
+        {
+            dm8009p_enable(chassis.joint_motor_left[motor]);
+            osDelay(1);
+            dm8009p_enable(chassis.joint_motor_right[motor]);
+            osDelay(1);
+        }
+    }
+#elif SMALL_MODEL
+    chassis.wheel_motor_left = Get_DM4310_Ptr(0x02);
+    chassis.wheel_motor_right = Get_DM4310_Ptr(0x01);
+
+    chassis.joint_motor_left = Get_M3508_Ptr(M3508_TX_1);
+    chassis.joint_motor_right = Get_M3508_Ptr(M3508_TX_2);
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        dm4310_enable(chassis.wheel_motor_left);
+        osDelay(1);
+        dm4310_enable(chassis.wheel_motor_left);
+        osDelay(1);
+    }
+#endif
 
     memset(&chassis.ctrl, 0, sizeof(chassis_ctrl_t));
     chassis_pid_init();
@@ -119,8 +191,13 @@ void chassis_feedback_update(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
-        chassis.vmc_r->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
-        chassis.vmc_r->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
+#if defined(INFANTRY) || defined(HERO)
+        chassis.vmc_l->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
+        chassis.vmc_l->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
+#elif SMALL_MODEL
+        chassis.vmc_l->phi1 = (chassis.joint_motor_right->ecd[0].ecd - chassis.joint_ecd_offset_right[0]) + PI/2.0f;
+        chassis.vmc_l->phi4 = (chassis.joint_motor_right->ecd[1].ecd - chassis.joint_ecd_offset_right[1]) + PI/2.0f;
+#endif
 
         chassis.ctrl.pitchR = chassis.ins->ins.Pitch;
         chassis.ctrl.pitchgyroR = chassis.ins->ins.Gyro[1];
@@ -139,9 +216,13 @@ void chassis_feedback_update(const uint8_t leg)
     }
     else if (leg == LEFT)
     {
+#if defined(INFANTRY) || defined(HERO)
         chassis.vmc_l->phi1 = chassis.joint_motor_left[0]->ecd.pos + PI/2.0f;
         chassis.vmc_l->phi4 = chassis.joint_motor_left[1]->ecd.pos + PI/2.0f;
-
+#elif SMALL_MODEL
+        chassis.vmc_l->phi1 = (chassis.joint_motor_left->ecd[0].ecd - chassis.joint_ecd_offset_left[0]) + PI/2.0f;
+        chassis.vmc_l->phi4 = (chassis.joint_motor_left->ecd[1].ecd - chassis.joint_ecd_offset_left[1]) + PI/2.0f;
+#endif
         chassis.ctrl.pitchL = 0.0f - chassis.ins->ins.Pitch;
         chassis.ctrl.pitchgyroL = 0.0f - chassis.ins->ins.Gyro[1];
     }
@@ -433,13 +514,14 @@ void chassis_motor_torch_calc(const uint8_t leg)
     }
 }
 
+#ifdef INFANTRY
 void chassis_motor_control(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
         dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
-        int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.right_T[0] * M3508_ECD_MAX / M3508_CURRENT_MAX), 0, 0, 0};
+        int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.right_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
         osDelay(CHASSIS_CTRL_LOOP);
         m3508_ctrl(chassis.wheel_motor_right, m3508_temp);
     }
@@ -447,8 +529,49 @@ void chassis_motor_control(const uint8_t leg)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
         dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
-        int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.left_T[0] * M3508_ECD_MAX / M3508_CURRENT_MAX), 0, 0, 0};
+        int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.left_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
         osDelay(CHASSIS_CTRL_LOOP);
         m3508_ctrl(chassis.wheel_motor_left, m3508_temp);
     }
 }
+#elif HERO
+void chassis_motor_control(const uint8_t leg)
+{
+    if (leg == RIGHT)
+    {
+        dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
+        //int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.right_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
+        osDelay(CHASSIS_CTRL_LOOP);
+        //m3508_ctrl(chassis.wheel_motor_right, m3508_temp);
+    }
+    else if (leg == LEFT)
+    {
+        dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
+        //int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.left_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
+        osDelay(CHASSIS_CTRL_LOOP);
+        //m3508_ctrl(chassis.wheel_motor_left, m3508_temp);
+    }
+}
+#elif SMALL_MODEL
+void chassis_motor_control(const uint8_t leg)
+{
+    if (leg == RIGHT)
+    {
+        int16_t m3508_temp[4] = {(int16_t)(chassis.vmc_r->torque_set[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), (int16_t)(chassis.vmc_r->torque_set[1] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0};
+        m3508_ctrl(chassis.joint_motor_right, m3508_temp);
+        dm4310_ctrl_mit(chassis.wheel_motor_right, 0.0f, 0.0f, 0.0f, 0.0f,chassis.ctrl.left_T[0]);
+
+        osDelay(CHASSIS_CTRL_LOOP);
+    }
+    else if (leg == LEFT)
+    {
+        int16_t m3508_temp[4] = {(int16_t)(chassis.vmc_l->torque_set[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), (int16_t)(chassis.vmc_l->torque_set[1] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0};
+        m3508_ctrl(chassis.joint_motor_left, m3508_temp);
+        dm4310_ctrl_mit(chassis.wheel_motor_left, 0.0f, 0.0f, 0.0f, 0.0f,chassis.ctrl.left_T[0]);
+
+        osDelay(CHASSIS_CTRL_LOOP);
+    }
+}
+#endif

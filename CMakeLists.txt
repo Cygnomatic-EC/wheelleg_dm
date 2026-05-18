@@ -38,9 +38,6 @@ add_executable(${CMAKE_PROJECT_NAME}
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
-#${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/ST/ARM/DSP/Lib
-#:libarm_cortexM7lfsp_math.a
-
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
@@ -64,8 +61,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         Module/motor/dji/m3508/m3508.c
         Module/motor/DJI/GM6020/gm6020.c
         Module/motor/DJI/M2006/m2006.c
-        Module/motor/LK/MF9025/mf9025.c
+        Module/motor/LK/lk.c
         Module/motor/DAMIAO/DM8009P/dm8009p.c
+        Module/motor/DAMIAO/DM4310/dm4310.c
         Module/motor/RS/rs02.c
         Module/DBUS/dbus.c
         Module/NUC/nuc.c
@@ -108,7 +106,9 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         MADE_BY_CMAKE
 
         CHASSIS
-        HERO
+        INFANTRY     # 步兵轮毂电机为M3508，关节电机为DM8009P
+        #HERO        # 英雄轮毂电机为MS9025，关节电机为DM8009P
+        #SMALL_MODEL # 小轮腿轮毂电机为DM4010，关节电机为M3508
 )
 
 # Remove wrong libob.a library dependency when using cpp files
