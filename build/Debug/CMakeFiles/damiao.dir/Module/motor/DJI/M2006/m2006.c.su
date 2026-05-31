@@ -1,0 +1,4 @@
+E:/Download/RM/wheelleg_dm/Module/motor/DJI/M2006/m2006.c:7:16:m2006_init	40	static
+E:/Download/RM/wheelleg_dm/Module/motor/DJI/M2006/m2006.c:34:16:m2006_ctrl	40	static
+E:/Download/RM/wheelleg_dm/Module/motor/DJI/M2006/m2006.c:54:6:get_m2006_measure	32	static
+E:/Download/RM/wheelleg_dm/Module/motor/DJI/M2006/m2006.c:67:17:Get_M2006_Ptr	16	static

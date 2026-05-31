@@ -1,0 +1,3 @@
+E:/Download/RM/wheelleg_dm/Module/IMU/HI12/hi12.c:9:6:HI12_Init	32	static
+E:/Download/RM/wheelleg_dm/Module/IMU/HI12/hi12.c:17:6:imuCallback	24	static
+E:/Download/RM/wheelleg_dm/Module/IMU/HI12/hi12.c:40:9:Get_HI12_Instance	4	static

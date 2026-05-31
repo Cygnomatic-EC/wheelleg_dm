@@ -1,0 +1,6 @@
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:13:6:PowerControl_Init	16	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:33:6:PowerControl_Update	24	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:61:6:PowerControl_CollectMotorData	40	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:85:8:PowerControl_GetParam	4	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:93:6:PowerControl_ResetRLS	8	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl_param_get.c:103:20:Get_PowerControlParam_Ptr	4	static

@@ -162,8 +162,8 @@ void chassisL_task(void *argument)
         chassis_feedback_update(LEFT);
         chassis_rc_update();
         chassis_T_calc(LEFT);
-        chassis_jump(LEFT);
-        chassis_offground_detect(LEFT);
+        // chassis_jump(LEFT);
+        // chassis_offground_detect(LEFT);
         chassis_motor_torch_calc(LEFT);
         chassis_motor_control(LEFT);
         osDelay(CHASSIS_CTRL_LOOP);
@@ -179,8 +179,8 @@ void chassisR_task(void *argument)
         chassis_feedback_update(RIGHT);
         chassis_rc_update();
         chassis_T_calc(RIGHT);
-        chassis_jump(RIGHT);
-        chassis_offground_detect(RIGHT);
+        // chassis_jump(RIGHT);
+        // chassis_offground_detect(RIGHT);
         chassis_motor_torch_calc(RIGHT);
         chassis_motor_control(RIGHT);
         osDelay(CHASSIS_CTRL_LOOP);

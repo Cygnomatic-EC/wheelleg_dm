@@ -1,0 +1,4 @@
+E:/Download/RM/wheelleg_dm/Module/VOFA/vofa.c:8:6:vofa_init	32	static
+E:/Download/RM/wheelleg_dm/Module/VOFA/vofa.c:21:6:vofacallback	24	static
+E:/Download/RM/wheelleg_dm/Module/VOFA/vofa.c:46:6:vofa_print	56	dynamic
+E:/Download/RM/wheelleg_dm/Module/VOFA/vofa.c:57:9:Get_VOFA_Ptr	4	static

@@ -1,0 +1,9 @@
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:27:6:allocatePowerWithLimit	120	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:151:14:calculateAllocatedPower	64	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:182:14:calculateMotorPower	32	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:189:14:clamp	24	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:198:6:initPowerControllerConfig	40	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:211:6:setMaxPower	16	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:219:9:limitMaxPower	24	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:230:24:Get_PowerControllerConfig_Ptr	4	static
+E:/Download/RM/wheelleg_dm/Module/Power_Ctrl/power_ctrl.c:235:24:Get_PowerAllocationResult_Ptr	4	static
