@@ -106,9 +106,9 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         MADE_BY_CMAKE
 
         CHASSIS
-        INFANTRY     # 步兵轮毂电机为M3508，关节电机为DM8009P
-        #HERO        # 英雄轮毂电机为MS9025，关节电机为DM8009P
-        #SMALL_MODEL # 小轮腿轮毂电机为DM4010，关节电机为M3508
+        #INFANTRY     # 步兵轮毂电机为M3508，关节电机为DM8009P
+        HERO        # 英雄轮毂电机为MF9025，关节电机为DM8009P
+        #SMALL_MODEL # 小轮腿轮毂电机为DM4310，关节电机为M3508
 )
 
 # Remove wrong libob.a library dependency when using cpp files

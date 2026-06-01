@@ -27,7 +27,7 @@ LK_Status_t lk_init(FDCAN_HandleTypeDef *hcan, const uint32_t txid)
 void lk_speed_init(const lk_instance* lk_ins, const uint16_t pid_v[3])
 {
     if (lk_ins == NULL) return;
-    while (lk_ins->ecd.ecd_offset == 0)
+    while (lk_ins->ecd.angle_offset == 0)
     {
         lk_get_measure(lk_ins);
         osDelay(5);
@@ -40,7 +40,6 @@ void lk_speed_init(const lk_instance* lk_ins, const uint16_t pid_v[3])
     }
 }
 
-// lk有非常多种控制方式，但是还是速度控制最好用，其他的不想写了
 LK_Status_t lk_ctrl_speed(const lk_instance* lk_ins, uint16_t iqControl, uint32_t speedControl)
 {
     if (lk_ins == NULL)
@@ -57,6 +56,31 @@ LK_Status_t lk_ctrl_speed(const lk_instance* lk_ins, uint16_t iqControl, uint32_
     txdata[5] = ((uint8_t *)&speedControl)[1];
     txdata[6] = ((uint8_t *)&speedControl)[2];
     txdata[7] = ((uint8_t *)&speedControl)[3];
+
+    if (BSP_CAN_Transmit(can_ins, lk_ins->txid, FDCAN_STANDARD_ID, txdata, 8) != CAN_OK)
+        return LK_ERROR;
+
+    return LK_OK;
+}
+
+LK_Status_t lk_ctrl_torque(const lk_instance* lk_ins, const fp32 torqueControl)
+{
+    if (lk_ins == NULL)
+        return LK_ERROR;
+
+    const CAN_Instance_t* can_ins = lk_ins->can_ins;
+
+    uint16_t iqControl = (uint16_t)(torqueControl / LK_IQ_RESOLUTION / LK_TORQUE_CONSTANT);
+    uint8_t txdata[8];
+
+    txdata[0] = CMD_LK_TORQUE_CONTROL;
+    txdata[1] = 0x00;
+    txdata[2] = 0x00;
+    txdata[3] = 0x00;
+    txdata[4] = ((uint8_t *)&iqControl)[0];
+    txdata[5] = ((uint8_t *)&iqControl)[1];
+    txdata[6] = 0x00;
+    txdata[7] = 0x00;
 
     if (BSP_CAN_Transmit(can_ins, lk_ins->txid, FDCAN_STANDARD_ID, txdata, 8) != CAN_OK)
         return LK_ERROR;
@@ -144,6 +168,7 @@ void lk_callback(const uint8_t* rx_data, uint32_t id, void* arg)
     switch(rx_data[0])
     {
         case CMD_LK_READ_MEASURE:
+        case CMD_LK_TORQUE_CONTROL:
         case CMD_LK_SPEED_CONTROL:
         case CMD_LK_ANGLE_CONTROL:
         case CMD_LK_INCREMENT_ANGLE_CONTROL:
@@ -167,13 +192,14 @@ void get_lk_ecd(const uint8_t* rx_data, void* arg)
 
     lk_ecd_t *ecd = (lk_ecd_t*)arg;
     ecd->temperature = (int8_t)   (rx_data)[1];
-    ecd->iq        = (int16_t)  ((rx_data)[3]<<8 | (rx_data)[2]);
+    ecd->iq_raw        = (int16_t)  ((rx_data)[3]<<8 | (rx_data)[2]);
     ecd->speed     = (int16_t)  ((rx_data)[5]<<8 | (rx_data)[4]);
-    ecd->ecd       = (uint16_t) ((rx_data)[7]<<8 | (rx_data)[6]);
-    if (ecd->ecd_offset == 0)
+    ecd->ecd_raw       = (uint16_t) ((rx_data)[7]<<8 | (rx_data)[6]);
+    ecd->angle         = (fp32)ecd->ecd_raw * LK_ECD_RESOLUTION;
+    ecd->torque        = (fp32)ecd->iq_raw * LK_IQ_RESOLUTION * LK_ECD_RESOLUTION;
+    if (ecd->angle_offset == 0.0f)
     {
-        ecd->ecd_offset = ecd->ecd;
-        ecd->zero_offset = (ecd->ecd > LK_ECD_IN_ZERO) ? (ecd->ecd - LK_ECD_IN_ZERO) : (ecd->ecd + LK_ECD_MAX - LK_ECD_IN_ZERO);
+        ecd->angle_offset = ecd->angle;
     }
 }
 

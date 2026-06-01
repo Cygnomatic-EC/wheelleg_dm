@@ -63,6 +63,10 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {46.4618f, -29.0229f, 6.5446f, 0.061617f}
 };
 #endif
+const fp32 LQR_K[12] = {
+    -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
+   37.6776f, 1.4518f, -0.1266f, -0.5637f, -6.1597f, -0.6672f
+};
 float LQR_K_R[12], LQR_K_L[12];
 
 static chassis_t chassis;
@@ -95,11 +99,13 @@ void chassis_init()
         }
     }
 #elif HERO
-    // 轮毂电机有点问题
     chassis.joint_motor_left[0] = Get_DM8009P_Ptr(0x02);
     chassis.joint_motor_left[1] = Get_DM8009P_Ptr(0x04);
     chassis.joint_motor_right[0] = Get_DM8009P_Ptr(0x01);
     chassis.joint_motor_right[1] = Get_DM8009P_Ptr(0x03);
+
+    chassis.wheel_motor_left = Get_LK_Ptr(0x142);
+    chassis.wheel_motor_right = Get_LK_Ptr(0x141);
 
     for (uint8_t i = 0; i < 10; i++)
     {
@@ -110,6 +116,7 @@ void chassis_init()
             dm8009p_enable(chassis.joint_motor_right[motor]);
             osDelay(1);
         }
+
     }
 #elif SMALL_MODEL
     chassis.wheel_motor_left = Get_DM4310_Ptr(0x02);
@@ -126,7 +133,11 @@ void chassis_init()
         osDelay(1);
     }
 #endif
-
+    for (uint8_t i = 0; i < 12; i++)
+    {
+        LQR_K_L[i] = LQR_K[i];
+        LQR_K_R[i] = LQR_K[i];
+    }
     memset(&chassis.ctrl, 0, sizeof(chassis_ctrl_t));
     chassis_pid_init();
     VMC_init(chassis.vmc_l, LEG_LEN_1, LEG_LEN_2);
@@ -251,7 +262,7 @@ void chassis_rc_update()
         }
         poweroff = 0;
         chassis.ctrl.v_set = (fp32)chassis.rc->rc_data.ch3 * RC_V_COE;
-        chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * 2.0f / 1000.0f;
+        chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f;
         chassis.ctrl.turn_set = (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
         chassis.ctrl.roll_set = (fp32)chassis.rc->rc_data.ch0 * RC_ROLL_COE;
         chassis.ctrl.leg_set += (fp32)chassis.rc->rc_data.ch1 * RC_LEG_COE;
@@ -287,9 +298,9 @@ void chassis_T_calc(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
-        VMC_calc_1(chassis.vmc_r, chassis.ctrl.pitchR, chassis.ctrl.pitchgyroR, CHASSIS_CTRL_LOOP*2.0f/1000.0f); // 发送时还有个延时
-        for (uint8_t i = 0; i < 12; i++)
-            LQR_K_R[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_r->L0);
+        VMC_calc_1(chassis.vmc_r, chassis.ctrl.pitchR, chassis.ctrl.pitchgyroR, CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f); // 发送时还有个延时
+        // for (uint8_t i = 0; i < 12; i++)
+        //     LQR_K_R[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_r->L0);
 
         // chassis.ctrl.turn_T = PID_calc(&chassis.turn_pid, chassis.ctrl.total_yaw, chassis.ctrl.turn_set);
         // chassis.ctrl.roll_f0 = PID_calc(&chassis.roll_pid, chassis.ctrl.roll, chassis.ctrl.roll_set);
@@ -310,9 +321,9 @@ void chassis_T_calc(const uint8_t leg)
     }
     else if (leg == LEFT)
     {
-        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP*2.0f/1000.0f); // 3.0f可能是测出来的
-        for (uint8_t i = 0; i < 12; i++)
-            LQR_K_L[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_l->L0);
+        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f); // 3.0f可能是测出来的
+        // for (uint8_t i = 0; i < 12; i++)
+        //     LQR_K_L[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_l->L0);
 
         const fp32 err_left[6] = {chassis.vmc_l->theta - 0.0f, chassis.vmc_l->d_theta - 0.0f,
             chassis.ctrl.x_set - chassis.ctrl.x_filter, chassis.ctrl.v_set * V_COE - chassis.ctrl.v_filter, // 不知道为什么乘了个系数
@@ -558,17 +569,15 @@ void chassis_motor_control(const uint8_t leg)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
         dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
-        //int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.right_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
-        osDelay(CHASSIS_CTRL_LOOP);
-        //m3508_ctrl(chassis.wheel_motor_right, m3508_temp);
+        //osDelay(CHASSIS_CTRL_LOOP);
+        lk_ctrl_torque(chassis.wheel_motor_right, chassis.ctrl.right_T[0]);
     }
     else if (leg == LEFT)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
         dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
-        //int16_t m3508_temp[4] = {(int16_t)(chassis.ctrl.left_T[0] * M3508_TORCH_MAX / M3508_CURRENT_MAX), 0, 0, 0};
-        osDelay(CHASSIS_CTRL_LOOP);
-        //m3508_ctrl(chassis.wheel_motor_left, m3508_temp);
+        //osDelay(CHASSIS_CTRL_LOOP);
+        lk_ctrl_torque(chassis.wheel_motor_left, chassis.ctrl.left_T[0]);
     }
 }
 #elif SMALL_MODEL
@@ -580,7 +589,7 @@ void chassis_motor_control(const uint8_t leg)
         m3508_ctrl(chassis.joint_motor_right, m3508_temp);
         dm4310_ctrl_mit(chassis.wheel_motor_right, 0.0f, 0.0f, 0.0f, 0.0f,chassis.ctrl.left_T[0]);
 
-        osDelay(CHASSIS_CTRL_LOOP);
+        //osDelay(CHASSIS_CTRL_LOOP);
     }
     else if (leg == LEFT)
     {
@@ -588,7 +597,7 @@ void chassis_motor_control(const uint8_t leg)
         m3508_ctrl(chassis.joint_motor_left, m3508_temp);
         dm4310_ctrl_mit(chassis.wheel_motor_left, 0.0f, 0.0f, 0.0f, 0.0f,chassis.ctrl.left_T[0]);
 
-        osDelay(CHASSIS_CTRL_LOOP);
+        //osDelay(CHASSIS_CTRL_LOOP);
     }
 }
 #endif

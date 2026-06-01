@@ -15,12 +15,14 @@
 #define RC_ROLL_COE 0.00005f
 #define RC_LEG_COE 0.00005f
 
+#define CHASSIS_DELAY_CNT 1.0f
+
 #ifdef INFANTRY
 #define LEG_LEN_1 0.0833f // 大腿长度，单位为m
 #define LEG_LEN_2 0.16f // 小腿长度，单位为m
 #define MG (10.0f * 9.81f) // 质量乘以重力加速度，单位为N
 
-#define V_COE 0.4f // 不懂？
+#define V_COE 1.0f // 不懂？
 #define PITCH_OFFSET 0.04f // 与机体中心有关？
 
 #define ROLL_LIMIT 0.4f
@@ -44,7 +46,7 @@
 #define LEG_LEN_2 0.16f // 小腿长度，单位为m
 #define MG (10.0f * 9.81f) // 质量乘以重力加速度，单位为N
 
-#define V_COE 0.4f // 不懂？
+#define V_COE 1.0f // 不懂？
 #define PITCH_OFFSET 0.04f // 与机体中心有关？
 
 #define ROLL_LIMIT 0.4f
