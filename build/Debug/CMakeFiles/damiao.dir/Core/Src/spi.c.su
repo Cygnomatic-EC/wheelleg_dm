@@ -1,4 +1,0 @@
-E:/Download/RM/wheelleg_dm/Core/Src/spi.c:34:6:MX_SPI2_Init	8	static
-E:/Download/RM/wheelleg_dm/Core/Src/spi.c:76:6:MX_SPI6_Init	8	static
-E:/Download/RM/wheelleg_dm/Core/Src/spi.c:118:6:HAL_SPI_MspInit	248	static
-E:/Download/RM/wheelleg_dm/Core/Src/spi.c:263:6:HAL_SPI_MspDeInit	16	static

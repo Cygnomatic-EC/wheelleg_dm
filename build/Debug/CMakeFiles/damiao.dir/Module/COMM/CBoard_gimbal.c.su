@@ -1,4 +1,0 @@
-E:/Download/RM/wheelleg_dm/Module/COMM/CBoard_gimbal.c:7:6:CBoard_Gimbal_Init	16	static
-E:/Download/RM/wheelleg_dm/Module/COMM/CBoard_gimbal.c:17:6:CBoard_RefereeCallback	32	static
-E:/Download/RM/wheelleg_dm/Module/COMM/CBoard_gimbal.c:29:6:CBoard_IMU_Transmit	40	static
-E:/Download/RM/wheelleg_dm/Module/COMM/CBoard_gimbal.c:42:18:Get_CBoard_Gimbal_Ptr	4	static

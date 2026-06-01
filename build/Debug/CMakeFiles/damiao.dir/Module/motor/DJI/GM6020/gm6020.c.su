@@ -1,5 +1,0 @@
-E:/Download/RM/wheelleg_dm/Module/motor/DJI/GM6020/gm6020.c:7:17:gm6020_init	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DJI/GM6020/gm6020.c:38:17:gm6020_ctrl_voltage	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DJI/GM6020/gm6020.c:57:17:gm6020_ctrl_current	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DJI/GM6020/gm6020.c:76:6:get_gm6020_measure	32	static
-E:/Download/RM/wheelleg_dm/Module/motor/DJI/GM6020/gm6020.c:89:18:Get_GM6020_Ptr	16	static

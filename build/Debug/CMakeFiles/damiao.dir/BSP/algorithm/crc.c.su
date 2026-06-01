@@ -1,7 +1,0 @@
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:33:9:Get_CRC8_Check_Sum	32	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:48:9:Verify_CRC8_Check_Sum	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:60:6:Append_CRC8_Check_Sum	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:108:10:Get_CRC16_Check_Sum	32	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:124:9:Verify_CRC16_Check_Sum	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:137:6:Append_CRC16_Check_Sum	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/crc.c:146:6:crc16_update	48	static

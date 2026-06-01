@@ -1,5 +1,0 @@
-E:/Download/RM/wheelleg_dm/BSP/algorithm/vmc.c:6:6:VMC_init	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/vmc.c:15:6:VMC_calc_1	40	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/vmc.c:66:6:VMC_calc_2	24	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/vmc.c:78:9:ground_detection	40	static
-E:/Download/RM/wheelleg_dm/BSP/algorithm/vmc.c:99:12:Get_VMC_Leg	16	static

@@ -1,9 +1,0 @@
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:8:17:dm4310_init	32	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:37:13:dm4310_can_rx_callback	32	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:56:17:dm4310_set_mode	16	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:64:17:dm4310_enable	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:78:17:dm4310_disable	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:92:17:dm4310_ctrl_mit	64	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:126:17:dm4310_ctrl_pos_vel	48	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:143:17:dm4310_ctrl_vel	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM4310/dm4310.c:160:18:Get_DM4310_Ptr	24	static

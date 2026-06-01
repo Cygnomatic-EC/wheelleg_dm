@@ -83,7 +83,7 @@ void chassis_init()
     chassis.joint_motor_left[1] = Get_DM8009P_Ptr(0x04);
     chassis.joint_motor_right[0] = Get_DM8009P_Ptr(0x01);
     chassis.joint_motor_right[1] = Get_DM8009P_Ptr(0x03);
-
+    //Power_OUT1_ON; Power_OUT2_ON;
     for (uint8_t i = 0; i < 10; i++)
     {
         for (uint8_t motor = 0; motor < 2; motor++)
@@ -231,9 +231,25 @@ void chassis_feedback_update(const uint8_t leg)
 void chassis_rc_update()
 {
     chassis.ctrl.start_flag = chassis.rc->rc_data.s1 == 1 ? 1 : 0;
+    static uint8_t poweroff = 1;
     if (chassis.ctrl.start_flag)
     {
-        Power_OUT1_ON; Power_OUT2_ON;
+        if (poweroff)
+        {
+            Power_OUT1_ON; Power_OUT2_ON;
+            osDelay(1000);
+            for (uint8_t i = 0; i < 10; i++)
+            {
+                for (uint8_t motor = 0; motor < 2; motor++)
+                {
+                    dm8009p_enable(chassis.joint_motor_left[motor]);
+                    osDelay(10);
+                    dm8009p_enable(chassis.joint_motor_right[motor]);
+                    osDelay(10);
+                }
+            }
+        }
+        poweroff = 0;
         chassis.ctrl.v_set = (fp32)chassis.rc->rc_data.ch3 * RC_V_COE;
         chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * 2.0f / 1000.0f;
         chassis.ctrl.turn_set = (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
@@ -256,6 +272,7 @@ void chassis_rc_update()
     else
     {
         Power_OUT1_OFF; Power_OUT2_OFF;
+        poweroff = 1;
         chassis.ctrl.v_set = 0.0f;
         chassis.ctrl.x_set = chassis.ctrl.x_filter;
         chassis.ctrl.turn_set = chassis.ctrl.total_yaw;
@@ -293,7 +310,7 @@ void chassis_T_calc(const uint8_t leg)
     }
     else if (leg == LEFT)
     {
-        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP*3.0f/1000.0f); // 3.0f可能是测出来的
+        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP*2.0f/1000.0f); // 3.0f可能是测出来的
         for (uint8_t i = 0; i < 12; i++)
             LQR_K_L[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_l->L0);
 

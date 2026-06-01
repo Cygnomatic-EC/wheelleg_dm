@@ -102,7 +102,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  volatile uint32_t cfsr  = SCB->CFSR;   // 0xE000ED28
+  volatile uint32_t hfsr  = SCB->HFSR;   // 0xE000ED2C
+  volatile uint32_t bfar  = SCB->BFAR;   // 0xE000ED38
+  volatile uint32_t mmfar = SCB->MMFAR;  // 0xE000ED34
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

@@ -1,9 +1,0 @@
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:8:18:dm8009p_init	32	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:37:13:dm8009p_can_rx_callback	32	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:56:18:dm8009p_set_mode	16	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:64:18:dm8009p_enable	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:78:18:dm8009p_disable	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:92:18:dm8009p_ctrl_mit	64	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:126:18:dm8009p_ctrl_pos_vel	48	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:143:18:dm8009p_ctrl_vel	40	static
-E:/Download/RM/wheelleg_dm/Module/motor/DAMIAO/DM8009P/dm8009p.c:160:19:Get_DM8009P_Ptr	24	static

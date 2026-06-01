@@ -72,6 +72,11 @@ void VMC_calc_2(vmc_leg_t *vmc)
 
     vmc->torque_set[0]=vmc->j11 * vmc->F0 + vmc->j12 * vmc->Tp;
     vmc->torque_set[1]=vmc->j21 * vmc->F0 + vmc->j22 * vmc->Tp;
+    if (vmc->phi2 == vmc->phi3)
+    {
+        vmc->torque_set[0] = 0.0f;
+        vmc->torque_set[1] = 0.0f;
+    }
 }
 
 static fp32 aver[2][4];

@@ -39,18 +39,17 @@ static void dm8009p_can_rx_callback(const uint8_t *rx_data, uint32_t id, void *a
     if (rx_data == NULL || arg == NULL)
         return;
 
-    dm8009p_instance *ins = (dm8009p_instance *)arg;
-    dm8009p_ecd_t *fb = &ins->ecd;
+    dm8009p_ecd_t *ecd = (dm8009p_ecd_t*)arg;
 
-    fb->err = (rx_data[0] >> 4) & 0x0F;
-    fb->pos_raw = (int16_t)(rx_data[1] << 8 | rx_data[2]);
-    fb->vel_raw = (int16_t)((rx_data[3] << 4 | rx_data[4] >> 4) & 0x0FFF);
-    fb->tor_raw = (int16_t)((rx_data[4] & 0x0F) << 8 | rx_data[5]);
-    fb->pos = dm_uint_to_float(fb->pos_raw, -DM8009P_POS_MAX, DM8009P_POS_MAX, 16);
-    fb->vel = dm_uint_to_float(fb->vel_raw, -DM8009P_VEL_MAX, DM8009P_VEL_MAX, 12);
-    fb->tor = dm_uint_to_float(fb->tor_raw, -DM8009P_TORQUE_MAX, DM8009P_TORQUE_MAX, 12);
-    fb->mos_temp = (fp32)rx_data[6];
-    fb->rotor_temp = (fp32)rx_data[7];
+    ecd->err = (rx_data[0] >> 4) & 0x0F;
+    ecd->pos_raw = (int16_t)(rx_data[1] << 8 | rx_data[2]);
+    ecd->vel_raw = (int16_t)((rx_data[3] << 4 | rx_data[4] >> 4) & 0x0FFF);
+    ecd->tor_raw = (int16_t)((rx_data[4] & 0x0F) << 8 | rx_data[5]);
+    ecd->pos = dm_uint_to_float(ecd->pos_raw, -DM8009P_POS_MAX, DM8009P_POS_MAX, 16);
+    ecd->vel = dm_uint_to_float(ecd->vel_raw, -DM8009P_VEL_MAX, DM8009P_VEL_MAX, 12);
+    ecd->tor = dm_uint_to_float(ecd->tor_raw, -DM8009P_TORQUE_MAX, DM8009P_TORQUE_MAX, 12);
+    ecd->mos_temp = (fp32)rx_data[6];
+    ecd->rotor_temp = (fp32)rx_data[7];
 }
 
 DM8009P_Status_t dm8009p_set_mode(dm8009p_instance *ins, const DM8009P_Mode_t mode)

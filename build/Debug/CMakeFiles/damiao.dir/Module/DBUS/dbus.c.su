@@ -1,5 +1,0 @@
-E:/Download/RM/wheelleg_dm/Module/DBUS/dbus.c:8:6:dbus_init	40	static
-E:/Download/RM/wheelleg_dm/Module/DBUS/dbus.c:25:6:RemoteDataProcess_UART	24	static
-E:/Download/RM/wheelleg_dm/Module/DBUS/dbus.c:48:6:RemoteDataProcess_CAN	32	static
-E:/Download/RM/wheelleg_dm/Module/DBUS/dbus.c:70:6:RemoteData_UART2CAN	32	static
-E:/Download/RM/wheelleg_dm/Module/DBUS/dbus.c:93:14:Get_DBUS_Ptr	4	static

@@ -1,6 +1,7 @@
 // TODO: 增加对扩展id的适配，但考虑到目前只有sb灵足用到，暂时不增加对扩展id的适配
 #include "bsp_can.h"
 #include "fdcan.h"
+#include "projdefs.h"
 #include "string.h"
 
 /* 全局CAN实例映射 */
@@ -254,6 +255,27 @@ void BSP_CAN_Rx_IRQHandler(CAN_Instance_t *can_ins)
     }
 }
 
+void BSP_CAN_Rx1_IRQHandler(CAN_Instance_t *can_ins)
+{
+    if (can_ins == NULL || can_ins->handle == NULL) {
+        return;
+    }
+
+    FDCAN_RxHeaderTypeDef rx_header;
+    uint8_t* rx_data = can_ins->rxbuf;
+
+    /* 从FIFO1读取消息 */
+    if (HAL_FDCAN_GetRxMessage(can_ins->handle, FDCAN_RX_FIFO1, &rx_header, rx_data) == HAL_OK)
+    {
+        /* 填充CAN消息结构 */
+        const uint32_t rxid = rx_header.Identifier;
+        const uint8_t idpos = CAN_FindCallbackIndex(can_ins, rxid);
+        void* arg = can_ins->callback_args[idpos];
+        if (idpos < MAX_CAN_FILTERS && can_ins->rx_callbacks[idpos] != NULL && can_ins->callback_ide[idpos] == rx_header.IdType)
+            can_ins->rx_callbacks[idpos](rx_data, rxid, arg);
+    }
+}
+
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
     if(RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
@@ -262,10 +284,10 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
         {
             BSP_CAN_Rx_IRQHandler(g_can_instances[0]);
         }
-        else if (hfdcan -> Instance == FDCAN2 && g_can_instances[1] != NULL)
-        {
-            BSP_CAN_Rx_IRQHandler(g_can_instances[1]);
-        }
+        // else if (hfdcan -> Instance == FDCAN2 && g_can_instances[1] != NULL)
+        // {
+        //     BSP_CAN_Rx_IRQHandler(g_can_instances[1]);
+        // }
         else if (hfdcan -> Instance == FDCAN3 && g_can_instances[2] != NULL)
         {
             BSP_CAN_Rx_IRQHandler(g_can_instances[2]);
@@ -277,6 +299,27 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
         // 可以在这里添加相应的处理代码，例如记录日志或清空FIFO
     }
     else if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_MESSAGE_LOST)
+    {
+        /* 处理消息丢失中断 */
+        // 可以在这里添加相应的处理代码，例如记录日志或清空FIFO
+    }
+}
+
+void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
+{
+    if(RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE)
+    {
+        if (hfdcan -> Instance == FDCAN2 && g_can_instances[1] != NULL)
+        {
+            BSP_CAN_Rx1_IRQHandler(g_can_instances[1]);
+        }
+    }
+    else if (RxFifo1ITs & FDCAN_IT_RX_FIFO0_FULL)
+    {
+        /* 处理FIFO满中断 */
+        // 可以在这里添加相应的处理代码，例如记录日志或清空FIFO
+    }
+    else if (RxFifo1ITs & FDCAN_IT_RX_FIFO0_MESSAGE_LOST)
     {
         /* 处理消息丢失中断 */
         // 可以在这里添加相应的处理代码，例如记录日志或清空FIFO
@@ -298,9 +341,11 @@ static CAN_Status_t CAN_ConfigureFilters(const CAN_Instance_t *can_ins)
 
     /* 配置基本过滤器 - 接受所有标准ID消息 */
     filter_config.IdType = FDCAN_STANDARD_ID;
-    filter_config.FilterIndex = can_ins->can_instance;
+    filter_config.FilterIndex = 0;//can_ins->can_instance;
     filter_config.FilterType = FDCAN_FILTER_MASK;
     filter_config.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+    if (can_ins->can_instance == 1)
+        filter_config.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
     filter_config.FilterID1 = 0x000; // 接受所有标准ID
     filter_config.FilterID2 = 0x000; // 标准ID掩码
 
@@ -312,9 +357,19 @@ static CAN_Status_t CAN_ConfigureFilters(const CAN_Instance_t *can_ins)
     {
         Error_Handler();
     }
-    if (HAL_FDCAN_ActivateNotification(can_ins->handle, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+    if (can_ins->can_instance != 1)
     {
-        Error_Handler();
+        if (HAL_FDCAN_ActivateNotification(can_ins->handle, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+        {
+            Error_Handler();
+        }
+    }
+    else
+    {
+        if (HAL_FDCAN_ActivateNotification(can_ins->handle, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK)
+        {
+            Error_Handler();
+        }
     }
     if (HAL_FDCAN_Start(can_ins->handle) != HAL_OK)
     {

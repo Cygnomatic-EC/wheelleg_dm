@@ -1,5 +1,0 @@
-E:/Download/RM/wheelleg_dm/BSP/usart/bsp_uart.c:26:22:UART_DMA_Stop_Receive	24	static
-E:/Download/RM/wheelleg_dm/BSP/usart/bsp_uart.c:53:15:BSP_UART_Init	32	static
-E:/Download/RM/wheelleg_dm/BSP/usart/bsp_uart.c:137:15:BSP_UART_Transmit	24	static
-E:/Download/RM/wheelleg_dm/BSP/usart/bsp_uart.c:160:6:BSP_UART_IRQHandler	32	static
-E:/Download/RM/wheelleg_dm/BSP/usart/bsp_uart.c:214:18:get_uart_ins_map	16	static
