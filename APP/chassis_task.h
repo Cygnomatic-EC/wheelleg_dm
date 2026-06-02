@@ -9,13 +9,14 @@
 #include "motor/LK/lk.h"
 #include "motor/DAMIAO/DM4310/dm4310.h"
 #include "DBUS/dbus.h"
+#include "VOFA/vofa.h"
 
 #define RC_V_COE 0.002f
 #define RC_TURN_COE 0.0005f
 #define RC_ROLL_COE 0.00005f
 #define RC_LEG_COE 0.00005f
 
-#define CHASSIS_DELAY_CNT 1.0f
+#define CHASSIS_DELAY_CNT 2.0f
 
 #ifdef INFANTRY
 #define LEG_LEN_1 0.0833f // 大腿长度，单位为m
@@ -146,6 +147,8 @@ typedef struct
 
     INS_t *ins;
     rc_instance *rc;
+
+    vofa_t *vofa;
 
 #ifdef INFANTRY
     m3508_instance *wheel_motor_left;

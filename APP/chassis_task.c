@@ -107,6 +107,8 @@ void chassis_init()
     chassis.wheel_motor_left = Get_LK_Ptr(0x142);
     chassis.wheel_motor_right = Get_LK_Ptr(0x141);
 
+    chassis.vofa = Get_VOFA_Ptr();
+
     for (uint8_t i = 0; i < 10; i++)
     {
         for (uint8_t motor = 0; motor < 2; motor++)
@@ -203,21 +205,21 @@ void chassis_feedback_update(const uint8_t leg)
     if (leg == RIGHT)
     {
 #if defined(INFANTRY) || defined(HERO)
-        chassis.vmc_l->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
-        chassis.vmc_l->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
 #elif SMALL_MODEL
-        chassis.vmc_l->phi1 = (chassis.joint_motor_right->ecd[0].ecd - chassis.joint_ecd_offset_right[0]) + PI/2.0f;
-        chassis.vmc_l->phi4 = (chassis.joint_motor_right->ecd[1].ecd - chassis.joint_ecd_offset_right[1]) + PI/2.0f;
+        chassis.vmc_r->phi1 = (chassis.joint_motor_right->ecd[0].ecd - chassis.joint_ecd_offset_right[0]) + PI/2.0f;
+        chassis.vmc_r->phi4 = (chassis.joint_motor_right->ecd[1].ecd - chassis.joint_ecd_offset_right[1]) + PI/2.0f;
 #endif
 
-        chassis.ctrl.pitchR = chassis.ins->ins.Pitch;
+        chassis.ctrl.pitchR = chassis.ins->ins.Roll;
         chassis.ctrl.pitchgyroR = chassis.ins->ins.Gyro[1];
 
         chassis.ctrl.total_yaw = chassis.ins->ins.YawTotalAngle;
-        chassis.ctrl.roll = chassis.ins->ins.Roll;
+        chassis.ctrl.roll = chassis.ins->ins.Pitch;
         chassis.ctrl.theta_err = 0.0f - (chassis.vmc_l->theta + chassis.vmc_r->theta);
 
-        if (chassis.ins->ins.Pitch < PI/6.0f && chassis.ins->ins.Pitch > -PI/6.0f)
+        if (chassis.ins->ins.Roll < PI/6.0f && chassis.ins->ins.Roll > -PI/6.0f) // Roll实为Pitch
         {
             chassis.ctrl.recover_flag = 0;
         }
@@ -234,7 +236,7 @@ void chassis_feedback_update(const uint8_t leg)
         chassis.vmc_l->phi1 = (chassis.joint_motor_left->ecd[0].ecd - chassis.joint_ecd_offset_left[0]) + PI/2.0f;
         chassis.vmc_l->phi4 = (chassis.joint_motor_left->ecd[1].ecd - chassis.joint_ecd_offset_left[1]) + PI/2.0f;
 #endif
-        chassis.ctrl.pitchL = 0.0f - chassis.ins->ins.Pitch;
+        chassis.ctrl.pitchL = 0.0f - chassis.ins->ins.Roll;
         chassis.ctrl.pitchgyroL = 0.0f - chassis.ins->ins.Gyro[1];
     }
 }
@@ -304,10 +306,12 @@ void chassis_T_calc(const uint8_t leg)
 
         // chassis.ctrl.turn_T = PID_calc(&chassis.turn_pid, chassis.ctrl.total_yaw, chassis.ctrl.turn_set);
         // chassis.ctrl.roll_f0 = PID_calc(&chassis.roll_pid, chassis.ctrl.roll, chassis.ctrl.roll_set);
-        chassis.ctrl.turn_T = chassis.turn_pid.Kp * (chassis.ctrl.turn_set - chassis.ctrl.total_yaw) - chassis.turn_pid.Kd * chassis.ins->ins.Gyro[2]; // 达妙表示这样计算更稳一点？
-        chassis.ctrl.roll_f0 = chassis.roll_pid.Kp * (chassis.ctrl.roll_set - chassis.ctrl.roll) - chassis.roll_pid.Kd * chassis.ins->ins.Gyro[0];
-        float_constrain(&chassis.ctrl.roll_f0, -chassis.roll_pid.max_out, chassis.roll_pid.max_out);
-        chassis.ctrl.leg_tp = PID_calc(&chassis.tp_pid, chassis.ctrl.theta_err, 0.0f);
+
+        // 先不加
+        // chassis.ctrl.turn_T = chassis.turn_pid.Kp * (chassis.ctrl.turn_set - chassis.ctrl.total_yaw) - chassis.turn_pid.Kd * chassis.ins->ins.Gyro[2]; // 达妙表示这样计算更稳一点？
+        // chassis.ctrl.roll_f0 = chassis.roll_pid.Kp * (chassis.ctrl.roll_set - chassis.ctrl.roll) - chassis.roll_pid.Kd * chassis.ins->ins.Gyro[0];
+        // float_constrain(&chassis.ctrl.roll_f0, -chassis.roll_pid.max_out, chassis.roll_pid.max_out);
+        // chassis.ctrl.leg_tp = PID_calc(&chassis.tp_pid, chassis.ctrl.theta_err, 0.0f);
 
         const fp32 err_right[6] = {chassis.vmc_r->theta - 0.0f, chassis.vmc_r->d_theta - 0.0f,
             chassis.ctrl.x_filter - chassis.ctrl.x_set, chassis.ctrl.v_filter - chassis.ctrl.v_set * V_COE, // 不知道为什么乘了个系数
@@ -567,17 +571,21 @@ void chassis_motor_control(const uint8_t leg)
 {
     if (leg == RIGHT)
     {
-        dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]); // 逆时针转为正
         dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
-        //osDelay(CHASSIS_CTRL_LOOP);
-        lk_ctrl_torque(chassis.wheel_motor_right, chassis.ctrl.right_T[0]);
+        osDelay(CHASSIS_CTRL_LOOP);
+        lk_ctrl_torque(chassis.wheel_motor_right, chassis.ctrl.right_T[0]); // 逆时针转为正
     }
     else if (leg == LEFT)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
         dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
-        //osDelay(CHASSIS_CTRL_LOOP);
+        osDelay(CHASSIS_CTRL_LOOP);
         lk_ctrl_torque(chassis.wheel_motor_left, chassis.ctrl.left_T[0]);
+        const fp32 vofa_send[4] = {chassis.vmc_r->theta, chassis.vmc_r->phi1, chassis.vmc_r->phi4, chassis.vmc_r->L0};
+        // pitch实为roll、右倾为正；roll实为pitch、向下倾为正；yaw左转为正
+        // gyro三者分别是roll、pitch、yaw
+        vofa_print(vofa_send);
     }
 }
 #elif SMALL_MODEL
