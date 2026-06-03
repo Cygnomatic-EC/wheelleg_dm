@@ -120,7 +120,7 @@ float radian_format(float Rad);
 float theta_format(float Ang);
 int float_rounding(float raw);
 uint16_t dm_float_to_uint(fp32 x_float, fp32 x_min, fp32 x_max, uint16_t bits);
-float dm_uint_to_float(int16_t x_int, fp32 x_min, fp32 x_max, uint16_t bits);
+float dm_uint_to_float(uint16_t x_int, fp32 x_min, fp32 x_max, uint16_t bits);
 
 #define rad_format(Ang) loop_float_constrain((Ang), -PI, PI)
 

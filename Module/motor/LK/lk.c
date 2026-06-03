@@ -70,7 +70,7 @@ LK_Status_t lk_ctrl_torque(const lk_instance* lk_ins, const fp32 torqueControl)
 
     const CAN_Instance_t* can_ins = lk_ins->can_ins;
 
-    uint16_t iqControl = (uint16_t)(torqueControl / LK_IQ_RESOLUTION / LK_TORQUE_CONSTANT);
+    uint16_t iqControl = (int16_t)(torqueControl / LK_IQ_RESOLUTION / LK_TORQUE_CONSTANT);
     uint8_t txdata[8];
 
     txdata[0] = CMD_LK_TORQUE_CONTROL;

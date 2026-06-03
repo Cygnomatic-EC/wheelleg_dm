@@ -25,7 +25,7 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {46.4618f, -29.0229f, 6.5446f, 0.061617f}
 };
 #elif HERO
-const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 350.0f, .ki = 0.0f, .kd = 3000.0f, .max_out = 300.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f};
 const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f};
@@ -65,8 +65,16 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
 #endif
 const fp32 LQR_K[12] = {
     -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
-   37.6776f, 1.4518f, -0.1266f, -0.5637f, -6.1597f, -0.6672f
+   37.6776f, 1.4518f, 0.0f, 0.0f, 6.1597f, 0.6672f
 };
+// const fp32 LQR_K[12] = {
+//     -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
+//    37.6776f, 1.4518f, -0.1266f, -0.5637f, -6.1597f, -0.6672f
+// };
+// const fp32 LQR_K[12] = {
+//     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+//    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+// };
 float LQR_K_R[12], LQR_K_L[12];
 
 static chassis_t chassis;
@@ -175,7 +183,7 @@ void chassisL_task(void *argument)
         chassis_feedback_update(LEFT);
         chassis_rc_update();
         chassis_T_calc(LEFT);
-        // chassis_jump(LEFT);
+        chassis_jump(LEFT);
         // chassis_offground_detect(LEFT);
         chassis_motor_torch_calc(LEFT);
         chassis_motor_control(LEFT);
@@ -192,7 +200,7 @@ void chassisR_task(void *argument)
         chassis_feedback_update(RIGHT);
         chassis_rc_update();
         chassis_T_calc(RIGHT);
-        // chassis_jump(RIGHT);
+        chassis_jump(RIGHT);
         // chassis_offground_detect(RIGHT);
         chassis_motor_torch_calc(RIGHT);
         chassis_motor_control(RIGHT);
@@ -205,8 +213,8 @@ void chassis_feedback_update(const uint8_t leg)
     if (leg == RIGHT)
     {
 #if defined(INFANTRY) || defined(HERO)
-        chassis.vmc_r->phi1 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
-        chassis.vmc_r->phi4 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi4 = chassis.joint_motor_right[0]->ecd.pos + PI/2.0f;
+        chassis.vmc_r->phi1 = chassis.joint_motor_right[1]->ecd.pos + PI/2.0f;
 #elif SMALL_MODEL
         chassis.vmc_r->phi1 = (chassis.joint_motor_right->ecd[0].ecd - chassis.joint_ecd_offset_right[0]) + PI/2.0f;
         chassis.vmc_r->phi4 = (chassis.joint_motor_right->ecd[1].ecd - chassis.joint_ecd_offset_right[1]) + PI/2.0f;
@@ -281,6 +289,8 @@ void chassis_rc_update()
             chassis.ctrl.jump_flag = 1;
             chassis.ctrl.jump_flag2 = 1;
         }
+        chassis.ctrl.jump_flag = 0;
+        chassis.ctrl.jump_flag2 = 0;
     }
     else
     {
@@ -320,23 +330,23 @@ void chassis_T_calc(const uint8_t leg)
 
         chassis.ctrl.right_T[1] = chassis.ctrl.right_T[1] + chassis.ctrl.leg_tp;
         chassis.ctrl.right_T[0] = chassis.ctrl.right_T[0] - chassis.ctrl.turn_T;
-        chassis.vmc_r->Tp = chassis.ctrl.right_T[0];
+        chassis.vmc_r->Tp = chassis.ctrl.right_T[1];
         float_constrain(&chassis.ctrl.right_T[0], -WHEEL_TORCH_LIMIT, WHEEL_TORCH_LIMIT);
     }
     else if (leg == LEFT)
     {
-        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f); // 3.0f可能是测出来的
+        VMC_calc_1(chassis.vmc_l, chassis.ctrl.pitchL, chassis.ctrl.pitchgyroL, CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f);
         // for (uint8_t i = 0; i < 12; i++)
         //     LQR_K_L[i] = LQR_K_calc(Poly_Coefficient[i], chassis.vmc_l->L0);
 
         const fp32 err_left[6] = {chassis.vmc_l->theta - 0.0f, chassis.vmc_l->d_theta - 0.0f,
             chassis.ctrl.x_set - chassis.ctrl.x_filter, chassis.ctrl.v_set * V_COE - chassis.ctrl.v_filter, // 不知道为什么乘了个系数
             chassis.ctrl.pitchL + PITCH_OFFSET, chassis.ctrl.pitchgyroL - 0.0f};
-        LQR_Calc(chassis.ctrl.left_T, LQR_K_R, err_left);
+        LQR_Calc(chassis.ctrl.left_T, LQR_K_L, err_left);
 
         chassis.ctrl.left_T[1] = chassis.ctrl.left_T[1] + chassis.ctrl.leg_tp;
         chassis.ctrl.left_T[0] = chassis.ctrl.left_T[0] - chassis.ctrl.turn_T;
-        chassis.vmc_l->Tp = chassis.ctrl.left_T[0];
+        chassis.vmc_l->Tp = chassis.ctrl.left_T[1];
         float_constrain(&chassis.ctrl.left_T[0], -WHEEL_TORCH_LIMIT, WHEEL_TORCH_LIMIT);
     }
 }
@@ -393,7 +403,7 @@ void chassis_jump(const uint8_t leg)
         }
         else
         {
-            chassis.vmc_r->F0 = MG / arm_cos_f32(chassis.vmc_r->theta) + PID_calc(&chassis.leg_r_pid, chassis.vmc_r->L0, chassis.ctrl.leg_set);
+            chassis.vmc_r->F0 = PID_calc(&chassis.leg_r_pid, chassis.vmc_r->L0, chassis.ctrl.leg_set) + MG / arm_cos_f32(chassis.vmc_r->theta);
         }
     }
     else if (leg == LEFT)
@@ -445,7 +455,7 @@ void chassis_jump(const uint8_t leg)
         }
         else
         {
-            chassis.vmc_l->F0 = MG / arm_cos_f32(chassis.vmc_r->theta) + PID_calc(&chassis.leg_r_pid, chassis.vmc_r->L0, chassis.ctrl.leg_set);
+            chassis.vmc_l->F0 = PID_calc(&chassis.leg_l_pid, chassis.vmc_l->L0, chassis.ctrl.leg_set) + MG / arm_cos_f32(chassis.vmc_l->theta);
         }
     }
 }
@@ -573,16 +583,22 @@ void chassis_motor_control(const uint8_t leg)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[0]); // 逆时针转为正
         dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_r->torque_set[1]);
+        // dm8009p_ctrl_mit(chassis.joint_motor_right[0], 0.0f, 0.0f, 0.0f, 0.0f,0.0f); // 逆时针转为正
+        // dm8009p_ctrl_mit(chassis.joint_motor_right[1], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
         osDelay(CHASSIS_CTRL_LOOP);
         lk_ctrl_torque(chassis.wheel_motor_right, chassis.ctrl.right_T[0]); // 逆时针转为正
+        //lk_ctrl_torque(chassis.wheel_motor_right, 0.0f);
     }
     else if (leg == LEFT)
     {
-        dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
-        dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
+        dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]);
+        dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
+        // dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,0.0f); // 逆时针转为正
+        // dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
         osDelay(CHASSIS_CTRL_LOOP);
         lk_ctrl_torque(chassis.wheel_motor_left, chassis.ctrl.left_T[0]);
-        const fp32 vofa_send[4] = {chassis.vmc_r->theta, chassis.vmc_r->phi1, chassis.vmc_r->phi4, chassis.vmc_r->L0};
+        //lk_ctrl_torque(chassis.wheel_motor_left, 0.0f);
+        const fp32 vofa_send[4] = {chassis.vmc_r->torque_set[0], chassis.vmc_r->torque_set[1], chassis.vmc_r->theta, chassis.vmc_r->L0};
         // pitch实为roll、右倾为正；roll实为pitch、向下倾为正；yaw左转为正
         // gyro三者分别是roll、pitch、yaw
         vofa_print(vofa_send);

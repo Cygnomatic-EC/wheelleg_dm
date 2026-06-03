@@ -307,7 +307,7 @@ uint16_t dm_float_to_uint(const fp32 x_float, const fp32 x_min, const fp32 x_max
     /* Converts a float to an unsigned int, given range and number of bits */
     const fp32 span = x_max - x_min;
     const fp32 offset = x_min;
-    return (int16_t) ((x_float-offset)*((fp32)((1<<bits)-1))/span);
+    return (uint16_t) ((x_float-offset)*((fp32)((1<<bits)-1))/span);
 }
 /**
 ************************************************************************
@@ -320,7 +320,7 @@ uint16_t dm_float_to_uint(const fp32 x_float, const fp32 x_min, const fp32 x_max
 * @details:    	将给定的无符号整数 x_int 在指定范围 [x_min, x_max] 内进行线性映射，映射结果为一个浮点数
 ************************************************************************
 **/
-float dm_uint_to_float(const int16_t x_int, const fp32 x_min, const fp32 x_max, const uint16_t bits)
+float dm_uint_to_float(const uint16_t x_int, const fp32 x_min, const fp32 x_max, const uint16_t bits)
 {
     /* converts unsigned int to float, given range and number of bits */
     const fp32 span = x_max - x_min;

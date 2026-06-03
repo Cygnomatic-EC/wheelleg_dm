@@ -34,9 +34,9 @@ typedef enum {
 
 typedef struct {
     uint8_t id;
-    int16_t pos_raw;
-    int16_t  vel_raw;
-    int16_t  tor_raw;
+    uint16_t pos_raw;
+    uint16_t  vel_raw;
+    uint16_t  tor_raw;
     fp32 pos;
     fp32 vel;
     fp32 tor;
