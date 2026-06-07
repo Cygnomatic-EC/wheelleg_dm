@@ -45,17 +45,17 @@
 #elif HERO
 #define LEG_LEN_1 0.21f // 大腿长度，单位为m
 #define LEG_LEN_2 0.25f // 小腿长度，单位为m
-#define MG (8.8f * 9.81f) // 总质量除以2乘以重力加速度，单位为N，注意要考虑气弹簧带来的补偿
+#define MG (3.0f * 9.81f) // 总质量除以2乘以重力加速度，单位为N，注意要考虑气弹簧带来的补偿
 
 #define V_COE 1.0f // 不懂？
-#define PITCH_OFFSET 0.00f // 因重心问题可能导致车平衡后一直王一个方向动，加上offset来补偿
+#define PITCH_OFFSET 0.06f // 因重心问题可能导致车平衡后一直往一个方向动，加上offset来补偿
 
 #define ROLL_LIMIT 0.4f
 #define LEG_LEN_MAX 0.35f
 #define LEG_LEN_MIN 0.20f
-#define WHEEL_TORCH_LIMIT 2.0f // 轮子扭矩限制，单位为N*m
+#define WHEEL_TORCH_LIMIT 5.0f // 轮子扭矩限制，单位为N*m
 #define F0_TORCH_LIMIT 100.0f // VMC计算得到的F0的扭矩限制
-#define JOINT_TORCH_LIMIT_DEFAULT 3.0f // 关节电机扭矩限制的默认值，单位为N*m，这个值在跳跃时会被修改
+#define JOINT_TORCH_LIMIT_DEFAULT 20.0f // 关节电机扭矩限制的默认值，单位为N*m，这个值在跳跃时会被修改
 #define JOINT_TORCH_LIMIT_JUMP 3.0f // 关节电机扭矩限制的跳跃值，单位为N*m，跳跃时会把这个值赋给JOINT_TORCH_LIMIT_DEFAULT来允许更大的扭矩输出
 #define DEFAULT_LEG_LEN 0.30f // 默认腿长，单位为m
 
@@ -66,6 +66,7 @@
 #define JUMP_3_LEG_LEN 0.22f // 跳跃第三阶段恢复时的腿长，单位为m
 #define JUMP_3_LEG_BOUNDER 0.25f // 跳跃第三阶段认为恢复完成时腿长的边界值，单位为m
 
+#endif
 #define CHASSIS_CTRL_LOOP 1
 
 typedef struct
@@ -133,7 +134,7 @@ typedef struct
     lk_instance *wheel_motor_right;
     dm8009p_instance *joint_motor_left[2];
     dm8009p_instance *joint_motor_right[2];
-
+#endif
     uint8_t init;
 } chassis_t;
 

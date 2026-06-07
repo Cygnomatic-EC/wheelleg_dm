@@ -29,7 +29,7 @@ void Modules_Init(void) {
     lk_init(&hfdcan2, 0x141);
 #endif
     WS2812_SPI_Init(1);
-    vofa_init(&huart1, 4, 0);
+    vofa_init(&huart1, 5, 0);
 
 #ifdef CHASSIS
 #endif

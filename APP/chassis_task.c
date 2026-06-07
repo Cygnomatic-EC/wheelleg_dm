@@ -25,10 +25,10 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {46.4618f, -29.0229f, 6.5446f, 0.061617f}
 };
 #elif HERO
-const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 100.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f};
-const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f};
-const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f};
-const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f};
+const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 100.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
 
 float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {-1.1412f, 1.2471f, -3.633f, 0.056666f},
@@ -45,8 +45,8 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
 };
 #endif
 const fp32 LQR_K[12] = {
-    -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
-   37.6776f, 1.4518f, -0.1266f, -0.5637f, -6.1597f, -0.6672f
+    -66.8573f, -10.4691f, -1.1799f, -38.2649f, -171.1111f, -16.8108f,
+   73.8949f, 6.0703f, 0.2871f, 9.3328f, 59.0837f, 0.9220f
 };
 // const fp32 LQR_K[12] = {
 //     -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
@@ -413,11 +413,11 @@ void chassis_offground_detect(const uint8_t leg)
             {
                 const fp32 err[6] = {chassis.vmc_r->theta - 0.0f, chassis.vmc_r->d_theta - 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
                 LQR_Calc_air(chassis.ctrl.right_T, LQR_K_R, err);
-                chassis.ctrl.right_T[1] = 0.0f;
+                chassis.ctrl.right_T[0] = 0.0f;
                 chassis.ctrl.x_filter = 0.0f;
                 chassis.ctrl.x_set = 0.0f;
-                chassis.ctrl.right_T[0] = chassis.ctrl.right_T[0] + chassis.ctrl.leg_tp;
-                chassis.vmc_r->Tp = chassis.ctrl.right_T[0];
+                chassis.ctrl.right_T[1] = chassis.ctrl.right_T[1] + chassis.ctrl.leg_tp;
+                chassis.vmc_r->Tp = chassis.ctrl.right_T[1];
             }
             else
             {
@@ -442,11 +442,11 @@ void chassis_offground_detect(const uint8_t leg)
             {
                 const fp32 err[6] = {chassis.vmc_l->theta - 0.0f, chassis.vmc_l->d_theta - 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
                 LQR_Calc_air(chassis.ctrl.left_T, LQR_K_L, err);
-                chassis.ctrl.left_T[1] = 0.0f;
+                chassis.ctrl.left_T[0] = 0.0f;
                 chassis.ctrl.x_filter = 0.0f;
                 chassis.ctrl.x_set = 0.0f;
-                chassis.ctrl.left_T[0] = chassis.ctrl.left_T[0] + chassis.ctrl.leg_tp;
-                chassis.vmc_l->Tp = chassis.ctrl.left_T[0];
+                chassis.ctrl.left_T[1] = chassis.ctrl.left_T[1] + chassis.ctrl.leg_tp;
+                chassis.vmc_l->Tp = chassis.ctrl.left_T[1];
             }
             else
             {
@@ -534,12 +534,12 @@ void chassis_motor_control(const uint8_t leg)
     {
         dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[0]); // 左腿VMC建模与右腿翻转，对应电机不同
         dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,chassis.vmc_l->torque_set[1]);
-        // dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
-        // dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
+        //dm8009p_ctrl_mit(chassis.joint_motor_left[0], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
+        //dm8009p_ctrl_mit(chassis.joint_motor_left[1], 0.0f, 0.0f, 0.0f, 0.0f,0.0f);
         osDelay(CHASSIS_CTRL_LOOP);
         lk_ctrl_torque(chassis.wheel_motor_left, chassis.ctrl.left_T[0]);
         //lk_ctrl_torque(chassis.wheel_motor_left, 0.0f);
-        const fp32 vofa_send[4] = {chassis.vmc_r->torque_set[0], chassis.vmc_r->torque_set[1], chassis.vmc_r->theta, chassis.vmc_r->L0};
+        const fp32 vofa_send[5] = {chassis.vmc_r->torque_set[0], chassis.vmc_r->torque_set[1], chassis.ctrl.right_T[0] ,chassis.ctrl.pitchR, chassis.vmc_r->theta};
         // pitch实为roll、右倾为正；roll实为pitch、向下倾为正；yaw左转为正
         // gyro三者分别是roll、pitch、yaw
         vofa_print(vofa_send);
