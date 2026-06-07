@@ -45,12 +45,12 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
 };
 #endif
 const fp32 LQR_K[12] = {
-    -66.8573f, -10.4691f, -1.1799f, -38.2649f, -171.1111f, -16.8108f,
-   73.8949f, 6.0703f, 0.2871f, 9.3328f, 59.0837f, 0.9220f
+    -24.9878f, -4.3076f, -1.3693f, -15.0560f, -164.1452f, -8.9190f,
+    37.7414f, 4.3389f, 0.6469f, 7.1692f, 30.7628f, 0.7235f
 };
 // const fp32 LQR_K[12] = {
-//     -10.3087f, -0.7176f, -1.1702f, -5.2173f, -42.9164f, -5.5554f,
-//    37.6776f, 1.4518f, -0.1266f, -0.5637f, -6.1597f, -0.6672f
+//      -27.2436f, -4.9795f, -1.6863f, -18.2448f, -94.4219f, -8.9411f,
+//     36.4989f, 3.8446f, 0.3691f, 4.0361f, 19.5093f, 0.1853f
 // };
 // const fp32 LQR_K[12] = {
 //     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -539,7 +539,7 @@ void chassis_motor_control(const uint8_t leg)
         osDelay(CHASSIS_CTRL_LOOP);
         lk_ctrl_torque(chassis.wheel_motor_left, chassis.ctrl.left_T[0]);
         //lk_ctrl_torque(chassis.wheel_motor_left, 0.0f);
-        const fp32 vofa_send[5] = {chassis.vmc_r->torque_set[0], chassis.vmc_r->torque_set[1], chassis.ctrl.right_T[0] ,chassis.ctrl.pitchR, chassis.vmc_r->theta};
+        const fp32 vofa_send[6] = {chassis.vmc_r->torque_set[0], chassis.vmc_r->torque_set[1], chassis.ctrl.right_T[0] ,chassis.ctrl.pitchR, chassis.vmc_r->theta, chassis.ctrl.v_filter};
         // pitch实为roll、右倾为正；roll实为pitch、向下倾为正；yaw左转为正
         // gyro三者分别是roll、pitch、yaw
         vofa_print(vofa_send);
