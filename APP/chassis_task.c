@@ -26,9 +26,9 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
 };
 #elif HERO
 const pid_config leg_pid_config = {.mode = PID_POSITION, .kp = 100.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 90.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
-const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
-const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 2.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
-const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 140.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config tp_pid_config = {.mode = PID_POSITION, .kp = 10.0f, .ki = 0.0f, .kd = 1.0f, .max_out = 2.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config turn_pid_config = {.mode = PID_POSITION, .kp = 1.5f, .ki = 0.0f, .kd = 0.3f, .max_out = 1.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
+const pid_config roll_pid_config = {.mode = PID_POSITION, .kp = 30.0f, .ki = 0.0f, .kd = 10.0f, .max_out = 100.0f, .max_iout = 0.0f, .deadzone = 0.0f, .out_limit_delta_N = 40.0f, .out_limit_delta_P = 40.0f};
 
 float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
     {-1.1412f, 1.2471f, -3.633f, 0.056666f},
@@ -45,12 +45,13 @@ float Poly_Coefficient[12][4]={{-213.6885f, 153.3306f, -50.978f, -0.13318f},
 };
 #endif
 const fp32 LQR_K[12] = {
-    -24.9878f, -4.3076f, -1.3693f, -15.0560f, -164.1452f, -8.9190f,
-    37.7414f, 4.3389f, 0.6469f, 7.1692f, 30.7628f, 0.7235f
+    -24.5479f, -4.1782f, -1.3072f, -14.3986f, -181.0354f, -8.9273f,
+   37.9162f, 4.4050f, 0.6832f, 7.5816f, 33.2927f, 0.7859f
+
 };
 // const fp32 LQR_K[12] = {
-//      -27.2436f, -4.9795f, -1.6863f, -18.2448f, -94.4219f, -8.9411f,
-//     36.4989f, 3.8446f, 0.3691f, 4.0361f, 19.5093f, 0.1853f
+//      -24.9878f, -4.3076f, -1.3693f, -15.0560f, -164.1452f, -8.9190f,
+//    37.7414f, 4.3389f, 0.6469f, 7.1692f, 30.7628f, 0.7235f
 // };
 // const fp32 LQR_K[12] = {
 //     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -214,8 +215,8 @@ void chassis_rc_update()
         poweroff = 0;
         chassis.ctrl.v_set = (fp32)chassis.rc->rc_data.ch3 * RC_V_COE;
         chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f;
-        chassis.ctrl.turn_set = (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
-        chassis.ctrl.roll_set = (fp32)chassis.rc->rc_data.ch0 * RC_ROLL_COE;
+        chassis.ctrl.turn_set += (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
+        //chassis.ctrl.roll_set = (fp32)chassis.rc->rc_data.ch0 * RC_ROLL_COE;
         chassis.ctrl.leg_set += (fp32)chassis.rc->rc_data.ch1 * RC_LEG_COE;
         float_constrain(&chassis.ctrl.roll_set, -ROLL_LIMIT, ROLL_LIMIT);
         float_constrain(&chassis.ctrl.leg_set, LEG_LEN_MIN, LEG_LEN_MAX);
@@ -259,10 +260,10 @@ void chassis_T_calc(const uint8_t leg)
         // chassis.ctrl.roll_f0 = PID_calc(&chassis.roll_pid, chassis.ctrl.roll, chassis.ctrl.roll_set);
 
         // 先不加
-        // chassis.ctrl.turn_T = chassis.turn_pid.Kp * (chassis.ctrl.turn_set - chassis.ctrl.total_yaw) - chassis.turn_pid.Kd * chassis.ins->ins.Gyro[2]; // 达妙表示这样计算更稳一点？
+        chassis.ctrl.turn_T = chassis.turn_pid.Kp * (chassis.ctrl.turn_set - chassis.ctrl.total_yaw) - chassis.turn_pid.Kd * chassis.ins->ins.Gyro[2]; // 达妙表示这样计算更稳一点？
         // chassis.ctrl.roll_f0 = chassis.roll_pid.Kp * (chassis.ctrl.roll_set - chassis.ctrl.roll) - chassis.roll_pid.Kd * chassis.ins->ins.Gyro[0];
         // float_constrain(&chassis.ctrl.roll_f0, -chassis.roll_pid.max_out, chassis.roll_pid.max_out);
-        // chassis.ctrl.leg_tp = PID_calc(&chassis.tp_pid, chassis.ctrl.theta_err, 0.0f);
+        chassis.ctrl.leg_tp = PID_calc(&chassis.tp_pid, chassis.ctrl.theta_err, 0.0f);
 
         const fp32 err_right[6] = {chassis.vmc_r->theta - 0.0f, chassis.vmc_r->d_theta - 0.0f,
             chassis.ctrl.x_filter - chassis.ctrl.x_set, chassis.ctrl.v_filter - chassis.ctrl.v_set * V_COE, // 不知道为什么乘了个系数

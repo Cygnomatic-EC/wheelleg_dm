@@ -11,9 +11,9 @@
 #include "VOFA/vofa.h"
 
 #define RC_V_COE 0.002f
-#define RC_TURN_COE 0.0005f
-#define RC_ROLL_COE 0.00005f
-#define RC_LEG_COE 0.00005f
+#define RC_TURN_COE 0.000003f
+#define RC_ROLL_COE 0.000001f
+#define RC_LEG_COE 0.000001f
 
 #define CHASSIS_DELAY_CNT 2.0f
 
@@ -47,7 +47,7 @@
 #define MG (2.0f * 9.81f) // 总质量除以2乘以重力加速度，单位为N，注意要考虑气弹簧带来的补偿
 
 #define V_COE 1.0f // 不懂？
-#define PITCH_OFFSET 0.06f // 因重心问题可能导致车平衡后一直往一个方向动，加上offset来补偿
+#define PITCH_OFFSET 0.085f // 因重心问题可能导致车平衡后一直往一个方向动，加上offset来补偿
 
 #define ROLL_LIMIT 0.4f
 #define LEG_LEN_MAX 0.35f
