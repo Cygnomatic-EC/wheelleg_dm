@@ -8,12 +8,13 @@
 #include "motor/DAMIAO/DM8009P/dm8009p.h"
 #include "motor/LK/lk.h"
 #include "DBUS/dbus.h"
+#include "DBUS/wbus.h"
 #include "VOFA/vofa.h"
 
 #define RC_V_COE 0.002f
 #define RC_TURN_COE 0.000003f
 #define RC_ROLL_COE 0.000001f
-#define RC_LEG_COE 0.000001f
+#define RC_LEG_COE 0.00015f
 
 #define CHASSIS_DELAY_CNT 2.0f
 
@@ -120,6 +121,7 @@ typedef struct
 
     INS_t *ins;
     rc_instance *rc;
+    wbus_instance *wbus;
 
     vofa_t *vofa;
 

@@ -50,8 +50,8 @@ const fp32 LQR_K[12] = {
 
 };
 // const fp32 LQR_K[12] = {
-//      -24.9878f, -4.3076f, -1.3693f, -15.0560f, -164.1452f, -8.9190f,
-//    37.7414f, 4.3389f, 0.6469f, 7.1692f, 30.7628f, 0.7235f
+//      -24.5479f, -4.1782f, -1.3072f, -14.3986f, -181.0354f, -8.9273f,
+//   37.9162f, 4.4050f, 0.6832f, 7.5816f, 33.2927f, 0.7859f
 // };
 // const fp32 LQR_K[12] = {
 //     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -68,6 +68,7 @@ void chassis_init()
     chassis.vmc_r = Get_VMC_Leg(RIGHT);
 
     chassis.rc = Get_DBUS_Ptr();
+    chassis.wbus = Get_WBUS_Ptr();
     chassis.ins = Get_INS_Ptr();
 #ifdef INFANTRY
     chassis.wheel_motor_left = Get_M3508_Ptr(M3508_TX_1);
@@ -191,9 +192,66 @@ void chassis_feedback_update(const uint8_t leg)
     }
 }
 
-void chassis_rc_update()
+// void chassis_rc_update() // DBUS
+// {
+//     chassis.ctrl.start_flag = chassis.rc->rc_data.s1 == 1 ? 1 : 0;
+//     static uint8_t poweroff = 1;
+//     if (chassis.ctrl.start_flag)
+//     {
+//         if (poweroff)
+//         {
+//             Power_OUT1_ON; Power_OUT2_ON;
+//             osDelay(1000);
+//             for (uint8_t i = 0; i < 10; i++)
+//             {
+//                 for (uint8_t motor = 0; motor < 2; motor++)
+//                 {
+//                     dm8009p_enable(chassis.joint_motor_left[motor]);
+//                     osDelay(10);
+//                     dm8009p_enable(chassis.joint_motor_right[motor]);
+//                     osDelay(10);
+//                 }
+//             }
+//         }
+//         poweroff = 0;
+//         chassis.ctrl.v_set = (fp32)chassis.rc->rc_data.ch3 * RC_V_COE;
+//         chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f;
+//         chassis.ctrl.turn_set += (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
+//         //chassis.ctrl.roll_set = (fp32)chassis.rc->rc_data.ch0 * RC_ROLL_COE;
+//         chassis.ctrl.leg_set += (fp32)chassis.rc->rc_data.ch1 * RC_LEG_COE;
+//         float_constrain(&chassis.ctrl.roll_set, -ROLL_LIMIT, ROLL_LIMIT);
+//         float_constrain(&chassis.ctrl.leg_set, LEG_LEN_MIN, LEG_LEN_MAX);
+//         if (fabsf(chassis.ctrl.leg_set - chassis.ctrl.last_leg_set) > 0.0001f)
+//         {
+//             chassis.vmc_r->leg_flag = 1;
+//             chassis.vmc_l->leg_flag = 1;
+//         }
+//         chassis.ctrl.last_leg_set = chassis.ctrl.leg_set;
+//         if (chassis.rc->rc_data.roll == 660)
+//         {
+//             chassis.ctrl.jump_flag = 1;
+//             chassis.ctrl.jump_flag2 = 1;
+//         }
+//         chassis.ctrl.jump_flag = 0;
+//         chassis.ctrl.jump_flag2 = 0;
+//     }
+//     else
+//     {
+//         Power_OUT1_OFF; Power_OUT2_OFF;
+//         poweroff = 1;
+//         chassis.ctrl.v_set = 0.0f;
+//         chassis.ctrl.x_set = chassis.ctrl.x_filter;
+//         chassis.ctrl.turn_set = chassis.ctrl.total_yaw;
+//         chassis.ctrl.roll_set = 0.0f;
+//         chassis.ctrl.leg_set = DEFAULT_LEG_LEN;
+//         chassis.ctrl.jump_flag = 0;
+//         chassis.ctrl.jump_flag2 = 0;
+//     }
+// }
+
+void chassis_rc_update() // WBUS
 {
-    chassis.ctrl.start_flag = chassis.rc->rc_data.s1 == 1 ? 1 : 0;
+    chassis.ctrl.start_flag = chassis.wbus->wbus_data.ch[9] > 0 ? 1 : 0;
     static uint8_t poweroff = 1;
     if (chassis.ctrl.start_flag)
     {
@@ -213,11 +271,11 @@ void chassis_rc_update()
             }
         }
         poweroff = 0;
-        chassis.ctrl.v_set = (fp32)chassis.rc->rc_data.ch3 * RC_V_COE;
+        chassis.ctrl.v_set = (fp32)chassis.wbus->wbus_data.ch[1] * RC_V_COE;
         chassis.ctrl.x_set += chassis.ctrl.v_set * CHASSIS_CTRL_LOOP * CHASSIS_DELAY_CNT / 1000.0f;
-        chassis.ctrl.turn_set += (fp32)chassis.rc->rc_data.ch2 * RC_TURN_COE;
+        chassis.ctrl.turn_set += (fp32)chassis.wbus->wbus_data.ch[3] * RC_TURN_COE;
         //chassis.ctrl.roll_set = (fp32)chassis.rc->rc_data.ch0 * RC_ROLL_COE;
-        chassis.ctrl.leg_set += (fp32)chassis.rc->rc_data.ch1 * RC_LEG_COE;
+        chassis.ctrl.leg_set = DEFAULT_LEG_LEN + (fp32)chassis.wbus->wbus_data.ch[15] * RC_LEG_COE;
         float_constrain(&chassis.ctrl.roll_set, -ROLL_LIMIT, ROLL_LIMIT);
         float_constrain(&chassis.ctrl.leg_set, LEG_LEN_MIN, LEG_LEN_MAX);
         if (fabsf(chassis.ctrl.leg_set - chassis.ctrl.last_leg_set) > 0.0001f)
@@ -226,7 +284,7 @@ void chassis_rc_update()
             chassis.vmc_l->leg_flag = 1;
         }
         chassis.ctrl.last_leg_set = chassis.ctrl.leg_set;
-        if (chassis.rc->rc_data.roll == 660)
+        if (chassis.wbus->wbus_data.ch[5] >= 660 && chassis.wbus->wbus_data.ch[6] >= 660)
         {
             chassis.ctrl.jump_flag = 1;
             chassis.ctrl.jump_flag2 = 1;
@@ -247,6 +305,7 @@ void chassis_rc_update()
         chassis.ctrl.jump_flag2 = 0;
     }
 }
+
 
 void chassis_T_calc(const uint8_t leg)
 {

@@ -4,6 +4,7 @@
 #include "usart.h"
 #include "dwt/bsp_dwt.h"
 #include "DBUS/dbus.h"
+#include "DBUS/wbus.h"
 #include "IMU/INS/ins.h"
 #include "motor/DAMIAO/DM8009P/dm8009p.h"
 #include "motor/DJI/M3508/m3508.h"
@@ -14,7 +15,8 @@
 void Modules_Init(void) {
     DWT_Init(DWT_CLOCK_FREQ);
 
-    dbus_init(RC_DIRECT, &hfdcan3);
+    //dbus_init(RC_DIRECT, &hfdcan3);
+    wbus_init(WBUS_DIRECT, &hfdcan3);
     BMI088_Init();
     INS_Init();
     dm8009p_init(&hfdcan1, 0x02, 0x12); // 左前

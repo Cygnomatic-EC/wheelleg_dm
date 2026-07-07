@@ -66,6 +66,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         Module/motor/DAMIAO/DM4310/dm4310.c
         Module/motor/RS/rs02.c
         Module/DBUS/dbus.c
+        Module/DBUS/wbus.c
         Module/NUC/nuc.c
         Module/NX/nx.c
         Module/Referee/referee.c
